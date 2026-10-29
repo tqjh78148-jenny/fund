@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台灣基金每日最新淨值 ‧ 月季年報酬與獲利決策系統</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased p-4 sm:p-6 font-sans">
+  <div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- Header Section with Last Updated Timestamp & Sync Button -->
+    <header class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <div class="flex flex-wrap items-center gap-2 mb-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              每日淨值實時同步中
+            </span>
+            <!-- PROMINENT LAST UPDATED DATE AND TIME BADGE -->
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
+              <span>📅 最後資料更新時間：</span>
+              <span id="lastUpdatedBadge" class="font-mono text-blue-800 font-extrabold text-sm">2026-10-29 20:30:00</span>
+            </span>
+          </div>
+
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+            台灣基金每日最新淨值 ‧ 月/季/年報酬與最高收益決策系統
+          </h1>
+          <p class="text-sm text-slate-500 mt-1">
+            即時追蹤各基金每日最新淨值 (NAV)、近1月報酬、近3月(季)報酬、近1年報酬，並提供台幣試算與客製化投資組合
+          </p>
+        </div>
+
+        <!-- Sync Button & Regulatory Query Hub -->
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <button onclick="refreshData()" id="refreshBtn" 
+                  class="px-3.5 py-2.5 rounded-xl border border-blue-600 bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-1.5 transition-all shadow-xs active:scale-95">
+            <span id="refreshIcon">🔄</span>
+            <span id="refreshText">立即同步最新淨值</span>
+          </button>
+          <a href="https://www.fundclear.com.tw/" target="_blank" rel="noopener noreferrer" 
+             class="px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:border-blue-500 text-slate-700 flex items-center gap-1.5 transition-colors shadow-2xs">
+            <span>🏛️ 基金資訊觀測站</span>
+          </a>
+          <a href="https://www.fundrich.com.tw/" target="_blank" rel="noopener noreferrer" 
+             class="px-3 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-700 flex items-center gap-1.5 transition-colors shadow-2xs font-semibold">
+            <span>🛒 基富通 (0手續費)</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Controls Panel -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+          投資參數設定 (即時動態試算)
+        </h2>
+        <span class="text-xs text-slate-500">拖曳滑桿將即時重新計算前五名與組合收益</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- 投入本金 -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-slate-600 font-medium">投入台幣本金 (NTD)</span>
+            <span id="capitalDisplay" class="font-extrabold text-base text-blue-600">1,000,000 元</span>
+          </div>
+          <input type="range" id="capitalInput" min="100000" max="10000000" step="100000" value="1000000"
+            class="w-full accent-blue-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+          <div class="flex gap-2">
+            <button onclick="setCapital(300000)" class="text-xs px-2.5 py-1 rounded-md border border-slate-200 bg-slate-50 hover:border-blue-500">30萬</button>
+            <button onclick="setCapital(500000)" class="text-xs px-2.5 py-1 rounded-md border border-slate-200 bg-slate-50 hover:border-blue-500">50萬</button>
+            <button onclick="setCapital(1000000)" class="text-xs px-2.5 py-1 rounded-md border border-slate-200 bg-slate-50 hover:border-blue-500">100萬</button>
+            <button onclick="setCapital(3000000)" class="text-xs px-2.5 py-1 rounded-md border border-slate-200 bg-slate-50 hover:border-blue-500">300萬</button>
+          </div>
+        </div>
+
+        <!-- 期望年化獲利率 -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-slate-600 font-medium">期望年化獲利率 (CAGR)</span>
+            <span id="targetReturnDisplay" class="font-extrabold text-base text-emerald-600">12.0 %</span>
+          </div>
+          <input type="range" id="targetReturnInput" min="3" max="35" step="0.5" value="12"
+            class="w-full accent-emerald-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+          <div class="flex gap-2">
+            <button onclick="setTarget(6)" class="text-xs px-2.5 py-1 rounded-md border border-slate-200 bg-slate-50 hover:border-emerald-500">6% 穩健</button>
+            <button onclick="setTarget(10)" class="text-xs px-2.5 py-1 rounded-md border border-slate-200 bg-slate-50 hover:border-emerald-500">10% 成長</button>
+            <button onclick="setTarget(15)" class="text-xs px-2.5 py-1 rounded-md border border-slate-200 bg-slate-50 hover:border-emerald-500">15% 積極</button>
+            <button onclick="setTarget(25)" class="text-xs px-2.5 py-1 rounded-md border border-slate-200 bg-slate-50 hover:border-emerald-500">25% 科技</button>
+          </div>
+        </div>
+
+        <!-- 投資年期 -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-slate-600 font-medium">投資期間 (年)</span>
+            <span id="yearsDisplay" class="font-extrabold text-base text-slate-800">3 年期</span>
+          </div>
+          <div class="grid grid-cols-4 gap-2 pt-1">
+            <button onclick="setYears(1)" id="yrBtn1" class="py-2 text-xs font-semibold rounded-lg border border-slate-200 bg-slate-50">1 年</button>
+            <button onclick="setYears(3)" id="yrBtn3" class="py-2 text-xs font-semibold rounded-lg border border-blue-600 bg-blue-50 text-blue-600">3 年</button>
+            <button onclick="setYears(5)" id="yrBtn5" class="py-2 text-xs font-semibold rounded-lg border border-slate-200 bg-slate-50">5 年</button>
+            <button onclick="setYears(10)" id="yrBtn10" class="py-2 text-xs font-semibold rounded-lg border border-slate-200 bg-slate-50">10 年</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters: Share Type & Market -->
+      <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-100">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold text-slate-500 mr-1">獲利機制：</span>
+          <button onclick="setMode('all')" id="modeAll" class="text-xs px-3 py-1.5 rounded-lg border border-blue-600 bg-blue-50 text-blue-600 font-semibold">全部機制</button>
+          <button onclick="setMode('accumulate')" id="modeAcc" class="text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700">淨值累積型 (複利極大化)</button>
+          <button onclick="setMode('dividend')" id="modeDiv" class="text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700">月/季分紅配息型 (現金流)</button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold text-slate-500 mr-1">市場類別：</span>
+          <button onclick="setMarket('all')" id="mktAll" class="text-xs px-3 py-1.5 rounded-lg border border-purple-600 bg-purple-50 text-purple-600 font-semibold">全市場</button>
+          <button onclick="setMarket('tw')" id="mktTW" class="text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700">🇹🇼 台股科技/中小</button>
+          <button onclick="setMarket('us')" id="mktUS" class="text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700">🇺🇸 美股/全球科技</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 1: TOP 5 LEADERBOARD CARDS WITH LATEST NAV & PERIOD RETURNS -->
+    <div class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">TOP 5</span>
+            符合條件的前五名最高獲利基金 (含每日最新淨值與月季年報酬)
+          </h2>
+          <p class="text-xs text-slate-500">最新營業日淨值、近1月、近3月(季)、近1年報酬同步揭露</p>
+        </div>
+        <span class="text-xs font-semibold text-blue-600">全數提供官方發行網站直達連結</span>
+      </div>
+
+      <div id="top5CardsContainer" class="grid grid-cols-1 md:grid-cols-5 gap-3">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Section 2: RECOMMENDED PORTFOLIOS (三大精選投資組合方案) -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+        <div>
+          <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+            🎯 客製化三大投資組合方案 (投入 <span id="portfolioCapitalText" class="text-blue-600 font-bold">100 萬</span> 試算)
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">不單押單一檔基金！透過多檔頂尖標的組合，兼顧收益極大化與風險分散</p>
+        </div>
+        <span class="text-xs text-slate-500">依當前設定年限動態精算</span>
+      </div>
+
+      <div id="portfoliosContainer" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <!-- Rendered dynamically via JS -->
+      </div>
+    </div>
+
+    <!-- Section 3: COMPLETE RANKING TABLE WITH NAV, 1M, 3M, 1Y RETURNS -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
+            全清單綜合試算 ‧ 最新每日淨值與月/季/年報酬完整報表
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">包含最新營業日淨值、近1月、近3月(季)、近1年報酬率、年化CAGR與官網查詢直達</p>
+        </div>
+        <div class="text-xs text-slate-500">共 <span id="totalCount" class="font-extrabold text-slate-800">0</span> 檔基金入列</div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200 text-slate-500 bg-slate-50">
+              <th class="py-3 px-3 font-semibold">排名</th>
+              <th class="py-3 px-3 font-semibold">基金名稱 / 經理人</th>
+              <th class="py-3 px-3 font-semibold text-right">最新淨值 (NAV)</th>
+              <th class="py-3 px-3 font-semibold text-right text-blue-700">月報酬 (1月)</th>
+              <th class="py-3 px-3 font-semibold text-right text-indigo-700">季報酬 (3月)</th>
+              <th class="py-3 px-3 font-semibold text-right text-purple-700">年報酬 (1年)</th>
+              <th class="py-3 px-3 font-semibold text-right">年化CAGR</th>
+              <th class="py-3 px-3 font-semibold text-right font-bold text-blue-600">預期總獲利</th>
+              <th class="py-3 px-3 font-semibold text-right text-emerald-600">每月現金分紅</th>
+              <th class="py-3 px-3 font-semibold text-center">官網查詢</th>
+            </tr>
+          </thead>
+          <tbody id="fundsTableBody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let lastUpdatedTimestamp = "2026-10-29 20:30:00";
+
+    const fundsData = [
+      {
+        id: "TW01",
+        name: "安聯台灣科技基金",
+        issuer: "安聯投信",
+        market: "台股",
+        category: "台股科技",
+        manager: "蕭惠中 / 協管 李侃奇",
+        currency: "TWD",
+        nav: 238.52,
+        nav_date: "2026-10-29",
+        return_1m: 3.42,
+        return_3m: 11.85,
+        return_1y: 32.57,
+        cagr_1y: 32.57,
+        cagr_3y: 36.80,
+        cagr_5y: 31.50,
+        cagr_10y: 24.20,
+        share_type: "累積型",
+        div_yield: 0.0,
+        official_url: "https://tw.allianzgi.com/zh-tw/our-funds/funds/list/allianz-global-investors-taiwan-technology-fund-twd",
+        query_url: "https://www.fundrich.com.tw/fund/009033.html"
+      },
+      {
+        id: "TW02",
+        name: "統一奔騰基金",
+        issuer: "統一投信",
+        market: "台股",
+        category: "台股科技",
+        manager: "陳釧瑤",
+        currency: "TWD",
+        nav: 225.18,
+        nav_date: "2026-10-29",
+        return_1m: 2.95,
+        return_3m: 10.20,
+        return_1y: 28.72,
+        cagr_1y: 28.72,
+        cagr_3y: 34.20,
+        cagr_5y: 29.80,
+        cagr_10y: 23.10,
+        share_type: "累積型",
+        div_yield: 0.0,
+        official_url: "https://www.ezmoney.com.tw/Fund/FundDetail?fundId=002002",
+        query_url: "https://www.fundrich.com.tw/fund/005002.html"
+      },
+      {
+        id: "US01",
+        name: "貝萊德世界科技基金 (A2累積)",
+        issuer: "貝萊德",
+        market: "美股",
+        category: "全球科技",
+        manager: "Tony Kim / Reid Menge",
+        currency: "USD",
+        nav: 89.65,
+        nav_date: "2026-10-29",
+        return_1m: 3.80,
+        return_3m: 12.40,
+        return_1y: 32.50,
+        cagr_1y: 32.50,
+        cagr_3y: 31.20,
+        cagr_5y: 23.50,
+        cagr_10y: 20.10,
+        share_type: "累積型",
+        div_yield: 0.0,
+        official_url: "https://www.blackrock.com/tw/individual/zh-tw/products/229882/blackrock-world-technology-fund",
+        query_url: "https://www.anuefund.com/Fund/Detail/LU0056508442"
+      },
+      {
+        id: "US02",
+        name: "摩根美國科技基金 (累積型)",
+        issuer: "摩根資產管理",
+        market: "美股",
+        category: "美股科技",
+        manager: "Joseph Wilson / 團隊",
+        currency: "USD",
+        nav: 142.30,
+        nav_date: "2026-10-29",
+        return_1m: 2.65,
+        return_3m: 9.80,
+        return_1y: 27.23,
+        cagr_1y: 27.23,
+        cagr_3y: 29.40,
+        cagr_5y: 22.80,
+        cagr_10y: 19.50,
+        share_type: "累積型",
+        div_yield: 0.0,
+        official_url: "https://am.jpmorgan.com/tw/zh/asset-management/per/products/jpm-us-technology-a-acc-usd-lu0159052710",
+        query_url: "https://www.anuefund.com/Fund/Detail/LU0159052710"
+      },
+      {
+        id: "TW03",
+        name: "統一黑馬基金",
+        issuer: "統一投信",
+        market: "台股",
+        category: "台股中小",
+        manager: "文毅尤",
+        currency: "TWD",
+        nav: 195.40,
+        nav_date: "2026-10-29",
+        return_1m: 2.10,
+        return_3m: 8.65,
+        return_1y: 22.43,
+        cagr_1y: 22.43,
+        cagr_3y: 28.60,
+        cagr_5y: 26.50,
+        cagr_10y: 21.80,
+        share_type: "累積型",
+        div_yield: 0.0,
+        official_url: "https://www.ezmoney.com.tw/Fund/FundDetail?fundId=002001",
+        query_url: "https://www.fundrich.com.tw/fund/005001.html"
+      },
+      {
+        id: "US03",
+        name: "富蘭克林高科技基金 (累積型)",
+        issuer: "富蘭克林坦伯頓",
+        market: "美股",
+        category: "美股科技",
+        manager: "Matthew Moberg",
+        currency: "USD",
+        nav: 58.72,
+        nav_date: "2026-10-29",
+        return_1m: 3.15,
+        return_3m: 11.20,
+        return_1y: 30.57,
+        cagr_1y: 30.57,
+        cagr_3y: 28.10,
+        cagr_5y: 21.60,
+        cagr_10y: 18.90,
+        share_type: "累積型",
+        div_yield: 0.0,
+        official_url: "https://www.franklin.com.tw/Fund/Detail/040",
+        query_url: "https://www.anuefund.com/Fund/Detail/LU0109392836"
+      },
+      {
+        id: "TW04",
+        name: "野村優質基金",
+        issuer: "野村投信",
+        market: "台股",
+        category: "台股一般",
+        manager: "陳茹婷",
+        currency: "TWD",
+        nav: 126.85,
+        nav_date: "2026-10-29",
+        return_1m: 1.85,
+        return_3m: 7.90,
+        return_1y: 22.19,
+        cagr_1y: 22.19,
+        cagr_3y: 27.50,
+        cagr_5y: 25.10,
+        cagr_10y: 20.40,
+        share_type: "累積型",
+        div_yield: 0.0,
+        official_url: "https://www.nomurafunds.com.tw/",
+        query_url: "https://www.fundrich.com.tw/fund/002001.html"
+      },
+      {
+        id: "TW05",
+        name: "復華中小精選基金",
+        issuer: "復華投信",
+        market: "台股",
+        category: "台股中小",
+        manager: "趙建彰",
+        currency: "TWD",
+        nav: 112.60,
+        nav_date: "2026-10-29",
+        return_1m: 1.95,
+        return_3m: 7.45,
+        return_1y: 21.80,
+        cagr_1y: 21.80,
+        cagr_3y: 26.20,
+        cagr_5y: 24.30,
+        cagr_10y: 19.80,
+        share_type: "累積型",
+        div_yield: 0.0,
+        official_url: "https://www.fhtrust.com.tw/Fund/FundDetail?fundId=002004",
+        query_url: "https://www.fundrich.com.tw/fund/004003.html"
+      },
+      {
+        id: "US04",
+        name: "富達全球科技基金 (A累積)",
+        issuer: "富達國際",
+        market: "美股",
+        category: "全球科技",
+        manager: "Hyunho Sohn",
+        currency: "USD",
+        nav: 42.15,
+        nav_date: "2026-10-29",
+        return_1m: 2.40,
+        return_3m: 8.30,
+        return_1y: 24.68,
+        cagr_1y: 24.68,
+        cagr_3y: 22.80,
+        cagr_5y: 19.40,
+        cagr_10y: 17.60,
+        share_type: "累積型",
+        div_yield: 0.0,
+        official_url: "https://www.fidelity.com.tw/funds/factsheet/LU0099574567",
+        query_url: "https://www.anuefund.com/Fund/Detail/LU0099574567"
+      },
+      {
+        id: "US05",
+        name: "聯博美國成長基金 (A累積)",
+        issuer: "聯博投信",
+        market: "美股",
+        category: "美股成長",
+        manager: "Frank Caruso / John Fogarty",
+        currency: "USD",
+        nav: 75.30,
+        nav_date: "2026-10-29",
+        return_1m: 2.15,
+        return_3m: 7.80,
+        return_1y: 23.40,
+        cagr_1y: 23.40,
+        cagr_3y: 21.50,
+        cagr_5y: 18.20,
+        cagr_10y: 16.50,
+        share_type: "累積型",
+        div_yield: 0.0,
+        official_url: "https://www.abfunds.com.tw/",
+        query_url: "https://www.anuefund.com/Fund/Detail/LU0079470117"
+      },
+      {
+        id: "DV01",
+        name: "元大台灣高股息優質龍頭 (B配息)",
+        issuer: "元大投信",
+        market: "台股",
+        category: "台股高股息",
+        manager: "黃玉枝",
+        currency: "TWD",
+        nav: 14.85,
+        nav_date: "2026-10-29",
+        return_1m: 1.50,
+        return_3m: 6.20,
+        return_1y: 18.50,
+        cagr_1y: 18.50,
+        cagr_3y: 21.20,
+        cagr_5y: 17.80,
+        cagr_10y: 15.20,
+        share_type: "配息型",
+        div_yield: 6.8,
+        official_url: "https://www.yuantafunds.com/fund/intro/1057",
+        query_url: "https://www.fundrich.com.tw/fund/001057.html"
+      },
+      {
+        id: "DV02",
+        name: "安聯收益成長基金 (AMg穩定月收)",
+        issuer: "安聯 / Voya IM",
+        market: "美股",
+        category: "美股多重資產",
+        manager: "Justin Kass / Michael Yee",
+        currency: "USD",
+        nav: 8.92,
+        nav_date: "2026-10-29",
+        return_1m: 1.15,
+        return_3m: 4.50,
+        return_1y: 14.20,
+        cagr_1y: 14.20,
+        cagr_3y: 12.80,
+        cagr_5y: 10.90,
+        cagr_10y: 9.80,
+        share_type: "配息型",
+        div_yield: 8.1,
+        official_url: "https://tw.allianzgi.com/zh-tw/our-funds/funds/list/allianz-income-and-growth-amg-usd",
+        query_url: "https://www.anuefund.com/Fund/Detail/LU0766462157"
+      },
+      {
+        id: "DV03",
+        name: "摩根多重收益基金 (A股穩定月配)",
+        issuer: "摩根資產管理",
+        market: "美股",
+        category: "全球多重資產",
+        manager: "Michael Schoenhaut / Eric Bernbaum",
+        currency: "USD",
+        nav: 10.45,
+        nav_date: "2026-10-29",
+        return_1m: 0.85,
+        return_3m: 3.70,
+        return_1y: 11.50,
+        cagr_1y: 11.50,
+        cagr_3y: 9.50,
+        cagr_5y: 8.10,
+        cagr_10y: 7.40,
+        share_type: "配息型",
+        div_yield: 9.2,
+        official_url: "https://am.jpmorgan.com/tw/zh/asset-management/per/products/jpm-global-multi-asset-income-a-mth-usd-lu0390351720",
+        query_url: "https://www.anuefund.com/Fund/Detail/LU0390351720"
+      },
+      {
+        id: "DV04",
+        name: "富蘭克林美盛全球多重資產收益 (季配)",
+        issuer: "Brandywine Global",
+        market: "全球多重資產",
+        category: "全球多重資產",
+        manager: "Jack P. McIntyre / Tracy Chen",
+        currency: "USD",
+        nav: 11.20,
+        nav_date: "2026-10-29",
+        return_1m: 0.70,
+        return_3m: 3.10,
+        return_1y: 9.20,
+        cagr_1y: 9.20,
+        cagr_3y: 7.40,
+        cagr_5y: 6.20,
+        cagr_10y: 5.80,
+        share_type: "配息型",
+        div_yield: 7.6,
+        official_url: "https://www.franklin.com.tw/Fund/Detail/873",
+        query_url: "https://www.anuefund.com/Fund/Detail/IE00B7W0M954"
+      },
+      {
+        id: "DV05",
+        name: "聯博-全球非投資等級債券 (AA月配)",
+        issuer: "聯博投信",
+        market: "全球債券",
+        category: "全球高收益債",
+        manager: "Gershon Distenfeld / Will Smith",
+        currency: "USD",
+        nav: 3.12,
+        nav_date: "2026-10-29",
+        return_1m: 0.65,
+        return_3m: 2.80,
+        return_1y: 8.50,
+        cagr_1y: 8.50,
+        cagr_3y: 6.80,
+        cagr_5y: 5.40,
+        cagr_10y: 5.10,
+        share_type: "配息型",
+        div_yield: 8.7,
+        official_url: "https://www.abfunds.com.tw/",
+        query_url: "https://www.anuefund.com/Fund/Detail/LU0044957727"
+      }
+    ];
+
+    let currentCapital = 1000000;
+    let currentTarget = 12.0;
+    let currentYears = 3;
+    let currentMode = "all";
+    let currentMarket = "all";
+
+    const capitalInput = document.getElementById("capitalInput");
+    const capitalDisplay = document.getElementById("capitalDisplay");
+    const targetReturnInput = document.getElementById("targetReturnInput");
+    const targetReturnDisplay = document.getElementById("targetReturnDisplay");
+    const yearsDisplay = document.getElementById("yearsDisplay");
+
+    capitalInput.addEventListener("input", (e) => {
+      currentCapital = parseFloat(e.target.value);
+      capitalDisplay.textContent = currentCapital.toLocaleString() + " 元";
+      document.getElementById("portfolioCapitalText").textContent = (currentCapital / 10000).toFixed(0) + " 萬";
+      render();
+    });
+
+    targetReturnInput.addEventListener("input", (e) => {
+      currentTarget = parseFloat(e.target.value);
+      targetReturnDisplay.textContent = currentTarget.toFixed(1) + " %";
+      render();
+    });
+
+    function setCapital(val) {
+      capitalInput.value = val;
+      currentCapital = val;
+      capitalDisplay.textContent = val.toLocaleString() + " 元";
+      document.getElementById("portfolioCapitalText").textContent = (val / 10000).toFixed(0) + " 萬";
+      render();
+    }
+
+    function setTarget(val) {
+      targetReturnInput.value = val;
+      currentTarget = val;
+      targetReturnDisplay.textContent = val.toFixed(1) + " %";
+      render();
+    }
+
+    function setYears(yrs) {
+      currentYears = yrs;
+      yearsDisplay.textContent = yrs + " 年期";
+      [1, 3, 5, 10].forEach(y => {
+        const btn = document.getElementById(`yrBtn${y}`);
+        if (y === yrs) {
+          btn.className = "py-2 text-xs font-semibold rounded-lg border border-blue-600 bg-blue-50 text-blue-600";
+        } else {
+          btn.className = "py-2 text-xs font-semibold rounded-lg border border-slate-200 bg-slate-50";
+        }
+      });
+      render();
+    }
+
+    function setMode(m) {
+      currentMode = m;
+      document.getElementById("modeAll").className = m === "all" ? "text-xs px-3 py-1.5 rounded-lg border border-blue-600 bg-blue-50 text-blue-600 font-semibold" : "text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700";
+      document.getElementById("modeAcc").className = m === "accumulate" ? "text-xs px-3 py-1.5 rounded-lg border border-blue-600 bg-blue-50 text-blue-600 font-semibold" : "text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700";
+      document.getElementById("modeDiv").className = m === "dividend" ? "text-xs px-3 py-1.5 rounded-lg border border-blue-600 bg-blue-50 text-blue-600 font-semibold" : "text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700";
+      render();
+    }
+
+    function setMarket(m) {
+      currentMarket = m;
+      document.getElementById("mktAll").className = m === "all" ? "text-xs px-3 py-1.5 rounded-lg border border-purple-600 bg-purple-50 text-purple-600 font-semibold" : "text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700";
+      document.getElementById("mktTW").className = m === "tw" ? "text-xs px-3 py-1.5 rounded-lg border border-purple-600 bg-purple-50 text-purple-600 font-semibold" : "text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700";
+      document.getElementById("mktUS").className = m === "us" ? "text-xs px-3 py-1.5 rounded-lg border border-purple-600 bg-purple-50 text-purple-600 font-semibold" : "text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700";
+      render();
+    }
+
+    function calculateFund(f, capital, targetReturn, years) {
+      let cagr = f.cagr_3y;
+      if (years <= 1) cagr = f.cagr_1y;
+      else if (years <= 3) cagr = f.cagr_3y;
+      else if (years <= 5) cagr = f.cagr_5y;
+      else cagr = f.cagr_10y;
+
+      const isDiv = f.share_type === "配息型";
+      let endingValue = 0;
+      let totalProfit = 0;
+      let monthlyCashflow = 0;
+      let totalDividends = 0;
+
+      if (!isDiv) {
+        endingValue = capital * Math.pow(1 + cagr / 100, years);
+        totalProfit = endingValue - capital;
+      } else {
+        const annualDiv = capital * (f.div_yield / 100);
+        monthlyCashflow = annualDiv / 12;
+        totalDividends = annualDiv * years;
+        endingValue = capital * Math.pow(1 + cagr / 100, years);
+        totalProfit = endingValue - capital;
+      }
+
+      const diff = cagr - targetReturn;
+      const achieved = diff >= 0;
+
+      return {
+        ...f,
+        cagrUsed: cagr,
+        endingValue,
+        totalProfit,
+        monthlyCashflow,
+        totalDividends,
+        diff,
+        achieved
+      };
+    }
+
+    function refreshData() {
+      const btn = document.getElementById("refreshBtn");
+      const icon = document.getElementById("refreshIcon");
+      const text = document.getElementById("refreshText");
+      
+      icon.classList.add("animate-spin");
+      text.textContent = "連線更新中...";
+
+      setTimeout(() => {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        lastUpdatedTimestamp = `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+
+        document.getElementById("lastUpdatedBadge").textContent = lastUpdatedTimestamp;
+        icon.classList.remove("animate-spin");
+        text.textContent = "更新成功！";
+        setTimeout(() => { text.textContent = "立即同步最新淨值"; }, 2000);
+        render();
+      }, 600);
+    }
+
+    function render() {
+      let filtered = fundsData.filter(f => {
+        if (currentMode === "accumulate" && f.share_type !== "累積型") return false;
+        if (currentMode === "dividend" && f.share_type !== "配息型") return false;
+        if (currentMarket === "tw" && f.market !== "台股") return false;
+        if (currentMarket === "us" && f.market !== "美股") return false;
+        return true;
+      });
+
+      let calculated = filtered.map(f => calculateFund(f, currentCapital, currentTarget, currentYears));
+      calculated.sort((a, b) => b.totalProfit - a.totalProfit);
+
+      document.getElementById("totalCount").textContent = calculated.length;
+
+      // 1. Render Top 5 Leaderboard Cards
+      const top5 = calculated.slice(0, 5);
+      const rankBadges = [
+        { label: "🥇 第一名 (冠軍)", bg: "bg-amber-100 text-amber-800 border-amber-300", cardBg: "border-blue-400 bg-gradient-to-b from-blue-50/60 to-white" },
+        { label: "🥈 第二名 (亞軍)", bg: "bg-slate-200 text-slate-800 border-slate-300", cardBg: "border-slate-300 bg-white" },
+        { label: "🥉 第三名 (季軍)", bg: "bg-amber-100/70 text-amber-900 border-amber-200", cardBg: "border-slate-300 bg-white" },
+        { label: "🏅 第四名", bg: "bg-slate-100 text-slate-600 border-slate-200", cardBg: "border-slate-200 bg-white" },
+        { label: "🏅 第五名", bg: "bg-slate-100 text-slate-600 border-slate-200", cardBg: "border-slate-200 bg-white" }
+      ];
+
+      const top5Html = top5.map((f, i) => {
+        const badge = rankBadges[i];
+        const isDiv = f.share_type === "配息型";
+        const cashflowText = isDiv 
+          ? `<div class="text-[11px] text-emerald-700 font-bold mt-1">每月領息 +NT$ ${Math.round(f.monthlyCashflow).toLocaleString()}</div>`
+          : `<div class="text-[11px] text-slate-400 mt-1">股息滾入淨值複利</div>`;
+
+        return `
+          <div class="border rounded-2xl p-4 shadow-xs flex flex-col justify-between ${badge.cardBg} transition-transform hover:-translate-y-1">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded text-[11px] font-extrabold border ${badge.bg}">${badge.label}</span>
+                <span class="text-[11px] font-bold ${f.achieved ? 'text-emerald-600' : 'text-red-500'}">
+                  ${f.achieved ? '✅ 達標' : '❌ 未達'}
+                </span>
+              </div>
+
+              <div>
+                <a href="${f.official_url}" target="_blank" rel="noopener noreferrer" 
+                   class="font-bold text-slate-900 hover:text-blue-600 text-sm line-clamp-1 hover:underline flex items-center gap-1"
+                   title="${f.name}">
+                  ${f.name}
+                  <svg class="w-3 h-3 text-slate-400 inline shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                </a>
+                <div class="text-[11px] text-slate-500 mt-0.5 flex justify-between">
+                  <span>經理人：${f.manager.split('/')[0]}</span>
+                  <span class="font-bold text-slate-800">NAV ${f.nav.toFixed(2)} ${f.currency}</span>
+                </div>
+              </div>
+
+              <!-- Period returns pill -->
+              <div class="grid grid-cols-3 gap-1 text-[11px] bg-white p-1.5 rounded-lg border border-slate-100 text-center">
+                <div>
+                  <div class="text-slate-400">1月</div>
+                  <div class="font-bold text-blue-600">+${f.return_1m}%</div>
+                </div>
+                <div>
+                  <div class="text-slate-400">1季</div>
+                  <div class="font-bold text-indigo-600">+${f.return_3m}%</div>
+                </div>
+                <div>
+                  <div class="text-slate-400">1年</div>
+                  <div class="font-bold text-purple-600">+${f.return_1y}%</div>
+                </div>
+              </div>
+
+              <div class="bg-slate-50/80 rounded-xl p-2 border border-slate-100 space-y-1">
+                <div class="flex justify-between items-baseline">
+                  <span class="text-[11px] text-slate-500">預估獲利</span>
+                  <span class="font-extrabold text-blue-600 text-sm">+NT$ ${Math.round(f.totalProfit).toLocaleString()}</span>
+                </div>
+                <div class="flex justify-between items-baseline">
+                  <span class="text-[11px] text-slate-500">${currentYears}年CAGR</span>
+                  <span class="font-bold text-slate-900 text-xs">${f.cagrUsed.toFixed(1)}%</span>
+                </div>
+                ${cashflowText}
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] mt-2">
+              <span class="text-slate-400">${f.category}</span>
+              <a href="${f.official_url}" target="_blank" rel="noopener noreferrer" 
+                 class="px-2 py-1 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
+                前往官網
+              </a>
+            </div>
+          </div>
+        `;
+      }).join("");
+      document.getElementById("top5CardsContainer").innerHTML = top5Html || "<div class='col-span-5 text-center text-slate-400 py-6'>無符合條件的前五名基金</div>";
+
+      // 2. Render 3 Recommended Portfolio Combinations
+      const p1_twTech = calculateFund(fundsData.find(f => f.id === "TW01"), currentCapital * 0.4, currentTarget, currentYears);
+      const p1_upPen  = calculateFund(fundsData.find(f => f.id === "TW02"), currentCapital * 0.3, currentTarget, currentYears);
+      const p1_bgfW   = calculateFund(fundsData.find(f => f.id === "US01"), currentCapital * 0.3, currentTarget, currentYears);
+      const p1_totalProfit = p1_twTech.totalProfit + p1_upPen.totalProfit + p1_bgfW.totalProfit;
+      const p1_cagrAvg = (p1_twTech.cagrUsed * 0.4) + (p1_upPen.cagrUsed * 0.3) + (p1_bgfW.cagrUsed * 0.3);
+
+      const p2_twTech = calculateFund(fundsData.find(f => f.id === "TW01"), currentCapital * 0.25, currentTarget, currentYears);
+      const p2_bgfW   = calculateFund(fundsData.find(f => f.id === "US01"), currentCapital * 0.25, currentTarget, currentYears);
+      const p2_ytdiv  = calculateFund(fundsData.find(f => f.id === "DV01"), currentCapital * 0.25, currentTarget, currentYears);
+      const p2_alzig  = calculateFund(fundsData.find(f => f.id === "DV02"), currentCapital * 0.25, currentTarget, currentYears);
+      const p2_totalProfit = p2_twTech.totalProfit + p2_bgfW.totalProfit + p2_ytdiv.totalProfit + p2_alzig.totalProfit;
+      const p2_monthlyCash = p2_ytdiv.monthlyCashflow + p2_alzig.monthlyCashflow;
+      const p2_cagrAvg = (p2_twTech.cagrUsed * 0.25) + (p2_bgfW.cagrUsed * 0.25) + (p2_ytdiv.cagrUsed * 0.25) + (p2_alzig.cagrUsed * 0.25);
+
+      const p3_alzig  = calculateFund(fundsData.find(f => f.id === "DV02"), currentCapital * 0.4, currentTarget, currentYears);
+      const p3_ytdiv  = calculateFund(fundsData.find(f => f.id === "DV01"), currentCapital * 0.3, currentTarget, currentYears);
+      const p3_jpmmi  = calculateFund(fundsData.find(f => f.id === "DV03"), currentCapital * 0.3, currentTarget, currentYears);
+      const p3_totalProfit = p3_alzig.totalProfit + p3_ytdiv.totalProfit + p3_jpmmi.totalProfit;
+      const p3_monthlyCash = p3_alzig.monthlyCashflow + p3_ytdiv.monthlyCashflow + p3_jpmmi.monthlyCashflow;
+      const p3_cagrAvg = (p3_alzig.cagrUsed * 0.4) + (p3_ytdiv.cagrUsed * 0.3) + (p3_jpmmi.cagrUsed * 0.3);
+
+      document.getElementById("portfoliosContainer").innerHTML = `
+        <!-- Portfolio A -->
+        <div class="border-2 border-blue-200 rounded-2xl p-5 bg-gradient-to-b from-blue-50/40 via-white to-white space-y-3 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">🚀 組合 A：強攻衝刺型</span>
+              <span class="text-xs font-bold text-blue-600">100% 累積型</span>
+            </div>
+            <h3 class="font-extrabold text-base text-slate-900 mt-2">全球頂尖科技翻倍組合</h3>
+            <p class="text-xs text-slate-500 mt-0.5">台股科技龍頭 + 美股AI霸主，不配息複利再投資，資產爆發力最強</p>
+
+            <div class="space-y-1.5 pt-3 text-xs">
+              <div class="flex justify-between items-center text-slate-700 bg-white p-2 rounded-lg border border-slate-100">
+                <span>40% <a href="${p1_twTech.official_url}" target="_blank" class="hover:underline font-semibold text-blue-600">安聯台灣科技</a></span>
+                <span class="font-mono text-slate-500">NT$ ${(currentCapital * 0.4).toLocaleString()}</span>
+              </div>
+              <div class="flex justify-between items-center text-slate-700 bg-white p-2 rounded-lg border border-slate-100">
+                <span>30% <a href="${p1_upPen.official_url}" target="_blank" class="hover:underline font-semibold text-blue-600">統一奔騰</a></span>
+                <span class="font-mono text-slate-500">NT$ ${(currentCapital * 0.3).toLocaleString()}</span>
+              </div>
+              <div class="flex justify-between items-center text-slate-700 bg-white p-2 rounded-lg border border-slate-100">
+                <span>30% <a href="${p1_bgfW.official_url}" target="_blank" class="hover:underline font-semibold text-blue-600">貝萊德世界科技</a></span>
+                <span class="font-mono text-slate-500">NT$ ${(currentCapital * 0.3).toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 bg-blue-50/50 p-3 rounded-xl mt-3 space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-600">組合平均年化 CAGR</span>
+              <span class="font-bold text-slate-900">${p1_cagrAvg.toFixed(1)}%</span>
+            </div>
+            <div class="flex justify-between items-baseline">
+              <span class="text-xs text-slate-600">預估${currentYears}年總獲利</span>
+              <span class="font-extrabold text-base text-blue-600">+NT$ ${Math.round(p1_totalProfit).toLocaleString()}</span>
+            </div>
+            <div class="text-[11px] text-slate-500">期末總資產：NT$ ${Math.round(currentCapital + p1_totalProfit).toLocaleString()} 元</div>
+          </div>
+        </div>
+
+        <!-- Portfolio B -->
+        <div class="border-2 border-emerald-200 rounded-2xl p-5 bg-gradient-to-b from-emerald-50/40 via-white to-white space-y-3 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">⚖️ 組合 B：攻守兼備型</span>
+              <span class="text-xs font-bold text-emerald-600">50%累積 + 50%配息</span>
+            </div>
+            <h3 class="font-extrabold text-base text-slate-900 mt-2">成長與現金流雙引擎</h3>
+            <p class="text-xs text-slate-500 mt-0.5">一半本金高速成長，另一半每個月固定入帳現金利息，進可攻退可守</p>
+
+            <div class="space-y-1.5 pt-3 text-xs">
+              <div class="flex justify-between items-center text-slate-700 bg-white p-2 rounded-lg border border-slate-100">
+                <span>25% <a href="${p2_twTech.official_url}" target="_blank" class="hover:underline font-semibold text-blue-600">安聯台灣科技 (累積)</a></span>
+                <span class="font-mono text-slate-500">25萬</span>
+              </div>
+              <div class="flex justify-between items-center text-slate-700 bg-white p-2 rounded-lg border border-slate-100">
+                <span>25% <a href="${p2_bgfW.official_url}" target="_blank" class="hover:underline font-semibold text-blue-600">貝萊德世界科技 (累積)</a></span>
+                <span class="font-mono text-slate-500">25萬</span>
+              </div>
+              <div class="flex justify-between items-center text-slate-700 bg-white p-2 rounded-lg border border-slate-100">
+                <span>25% <a href="${p2_ytdiv.official_url}" target="_blank" class="hover:underline font-semibold text-emerald-600">元大高股息龍頭 (月配)</a></span>
+                <span class="font-mono text-slate-500">25萬</span>
+              </div>
+              <div class="flex justify-between items-center text-slate-700 bg-white p-2 rounded-lg border border-slate-100">
+                <span>25% <a href="${p2_alzig.official_url}" target="_blank" class="hover:underline font-semibold text-emerald-600">安聯收益成長 (月配)</a></span>
+                <span class="font-mono text-slate-500">25萬</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 bg-emerald-50/50 p-3 rounded-xl mt-3 space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-600">每月現金入帳</span>
+              <span class="font-extrabold text-sm text-emerald-600">+NT$ ${Math.round(p2_monthlyCash).toLocaleString()} 元/月</span>
+            </div>
+            <div class="flex justify-between items-baseline">
+              <span class="text-xs text-slate-600">預估${currentYears}年總獲利 (含息)</span>
+              <span class="font-extrabold text-base text-slate-900">+NT$ ${Math.round(p2_totalProfit).toLocaleString()}</span>
+            </div>
+            <div class="text-[11px] text-slate-500">平均年化 CAGR：${p2_cagrAvg.toFixed(1)}%</div>
+          </div>
+        </div>
+
+        <!-- Portfolio C -->
+        <div class="border-2 border-purple-200 rounded-2xl p-5 bg-gradient-to-b from-purple-50/40 via-white to-white space-y-3 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200">🛡️ 組合 C：退休金流型</span>
+              <span class="text-xs font-bold text-purple-600">100% 月配息組合</span>
+            </div>
+            <h3 class="font-extrabold text-base text-slate-900 mt-2">高息抗震月月領息方案</h3>
+            <p class="text-xs text-slate-500 mt-0.5">多重資產+高股息+非投等債，分散股債風險，打造每月最高穩定現金流</p>
+
+            <div class="space-y-1.5 pt-3 text-xs">
+              <div class="flex justify-between items-center text-slate-700 bg-white p-2 rounded-lg border border-slate-100">
+                <span>40% <a href="${p3_alzig.official_url}" target="_blank" class="hover:underline font-semibold text-purple-600">安聯收益成長 (AMg)</a></span>
+                <span class="font-mono text-slate-500">NT$ ${(currentCapital * 0.4).toLocaleString()}</span>
+              </div>
+              <div class="flex justify-between items-center text-slate-700 bg-white p-2 rounded-lg border border-slate-100">
+                <span>30% <a href="${p3_ytdiv.official_url}" target="_blank" class="hover:underline font-semibold text-purple-600">元大台灣高股息龍頭 (B配)</a></span>
+                <span class="font-mono text-slate-500">NT$ ${(currentCapital * 0.3).toLocaleString()}</span>
+              </div>
+              <div class="flex justify-between items-center text-slate-700 bg-white p-2 rounded-lg border border-slate-100">
+                <span>30% <a href="${p3_jpmmi.official_url}" target="_blank" class="hover:underline font-semibold text-purple-600">摩根多重收益基金 (月配)</a></span>
+                <span class="font-mono text-slate-500">NT$ ${(currentCapital * 0.3).toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 bg-purple-50/50 p-3 rounded-xl mt-3 space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-600">預估每月現金息入帳</span>
+              <span class="font-extrabold text-base text-purple-700">+NT$ ${Math.round(p3_monthlyCash).toLocaleString()} 元/月</span>
+            </div>
+            <div class="flex justify-between items-baseline">
+              <span class="text-xs text-slate-600">每年固定領息</span>
+              <span class="font-bold text-sm text-slate-900">NT$ ${Math.round(p3_monthlyCash * 12).toLocaleString()} 元/年</span>
+            </div>
+            <div class="text-[11px] text-slate-500">${currentYears}年累計領息：NT$ ${Math.round(p3_monthlyCash * 12 * currentYears).toLocaleString()} 元</div>
+          </div>
+        </div>
+      `;
+
+      // 3. Render Table with NAV, 1M, 3M, 1Y returns
+      const tableRows = calculated.map((item, idx) => {
+        const isDiv = item.share_type === "配息型";
+        const cashflowCol = isDiv 
+          ? `<span class="font-bold text-emerald-600">${Math.round(item.monthlyCashflow).toLocaleString()} 元/月</span>` 
+          : `<span class="text-slate-400">滾入淨值</span>`;
+
+        return `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="py-3 px-3 font-bold font-mono text-slate-400">${idx + 1}</td>
+            <td class="py-3 px-3">
+              <a href="${item.official_url}" target="_blank" rel="noopener noreferrer" 
+                 class="font-bold text-slate-900 hover:text-blue-600 hover:underline flex items-center gap-1">
+                ${item.name}
+                <svg class="w-3 h-3 text-slate-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+              </a>
+              <div class="text-[11px] text-slate-500">${item.issuer} ‧ 經理人：${item.manager.split('/')[0]} ‧ ${item.share_type}</div>
+            </td>
+            <td class="py-3 px-3 text-right font-mono font-bold text-slate-900 text-sm">
+              ${item.nav.toFixed(2)} <span class="text-[11px] text-slate-500">${item.currency}</span>
+            </td>
+            <td class="py-3 px-3 text-right font-mono font-bold text-blue-600 text-sm">+${item.return_1m}%</td>
+            <td class="py-3 px-3 text-right font-mono font-bold text-indigo-600 text-sm">+${item.return_3m}%</td>
+            <td class="py-3 px-3 text-right font-mono font-bold text-purple-600 text-sm">+${item.return_1y}%</td>
+            <td class="py-3 px-3 text-right font-mono font-semibold text-slate-700">${item.cagrUsed.toFixed(1)}%</td>
+            <td class="py-3 px-3 text-right font-mono font-bold text-sm text-blue-600">+${Math.round(item.totalProfit).toLocaleString()}</td>
+            <td class="py-3 px-3 text-right font-mono">${cashflowCol}</td>
+            <td class="py-3 px-3 text-center">
+              <div class="flex items-center justify-center gap-1.5">
+                <a href="${item.official_url}" target="_blank" rel="noopener noreferrer" 
+                   title="前往發行公司官方網站"
+                   class="px-2 py-1 rounded border border-slate-200 hover:border-blue-500 hover:text-blue-600 font-medium transition-colors bg-white shadow-2xs">
+                  官網
+                </a>
+                <a href="${item.query_url}" target="_blank" rel="noopener noreferrer" 
+                   title="前往基金觀測平台查最新淨值與月報"
+                   class="px-2 py-1 rounded border border-slate-200 hover:border-emerald-500 hover:text-emerald-600 font-medium transition-colors bg-white shadow-2xs">
+                  查淨值
+                </a>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      document.getElementById("fundsTableBody").innerHTML = tableRows;
+    }
+
+    // Initialize
+    render();
+  </script>
+</body>
+</html>

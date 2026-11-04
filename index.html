@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台股科技 ETF 與高科技佔比基金——價格位階評估暨 50,000 點推估系統</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom clean scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f8fafc; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased p-3 sm:p-6 font-sans">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Header Block (Pure Card & Tags) -->
+    <header class="bg-white border border-slate-200 rounded-3xl p-5 sm:p-7 shadow-sm">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div class="space-y-2">
+          <!-- Live Status Tags -->
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              每日雙重位階即時更新中
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
+              <span>📅 最後資料更新時間：</span>
+              <span id="lastUpdatedBadge" class="font-mono text-blue-900 font-extrabold">2026-11-04 12:05:20</span>
+            </span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              <span>📈 基準大盤：<b id="baseIndexText">44,000</b> 點</span>
+            </span>
+          </div>
+
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+            台股科技 ETF 與高科技佔比基金 ‧ 雙重位階評估暨 50,000 點推估系統
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-500 max-w-3xl leading-relaxed">
+            採用【模型 A 高點回檔 Drawdown】與【模型 B 均線負乖離 60MA/120MA BIAS】雙重演算法，綜合判定「💎 雙重甜甜價 / 🟡 偏甜合理 / 🔴 昂貴過熱」，並推估大盤衝擊 50,000 點各標的目標價與預估收益。
+          </p>
+        </div>
+
+        <!-- Header Actions -->
+        <div class="flex flex-wrap items-center gap-2.5 text-xs">
+          <button onclick="openAddTargetModal()" 
+                  class="px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold flex items-center gap-1.5 transition-all shadow-xs active:scale-95">
+            <span>➕ 動態新增標的</span>
+          </button>
+          <button onclick="refreshData()" id="refreshBtn" 
+                  class="px-3.5 py-2.5 rounded-2xl border border-slate-300 bg-white hover:border-blue-500 text-slate-700 font-bold flex items-center gap-1.5 transition-all shadow-2xs active:scale-95">
+            <span id="refreshIcon">🔄</span>
+            <span id="refreshText">重新計算更新</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Section: 大盤點位模擬器控制面板 (Pure Cards, No Tables) -->
+    <section class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-5 sm:p-7 shadow-md space-y-5">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-indigo-800/60 pb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+              🎯 大盤 50,000 點推估模型
+            </span>
+            <h2 class="text-lg sm:text-xl font-extrabold tracking-wide">
+              大盤指數情境與目標價推估
+            </h2>
+          </div>
+          <p class="text-xs text-indigo-200 mt-1">
+            公式：ΔIndex = (目標點數 - 基準點數) / 基準點數 ｜ 預估漲幅 = ΔIndex × 標的 Beta ｜ 預估目標價 = 淨值 × (1 + 預估漲幅)
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3 text-xs bg-slate-800/80 px-3.5 py-2 rounded-2xl border border-indigo-700/60">
+          <span class="text-indigo-300">基準大盤指數：</span>
+          <input type="number" id="baseIndexInput" value="44000" step="500" 
+                 class="w-24 bg-slate-900 text-white border border-indigo-500 rounded-lg px-2 py-1 font-mono font-bold text-center">
+          <span class="text-indigo-300">點</span>
+        </div>
+      </div>
+
+      <!-- Controls: Target Points & Capital -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+        <!-- Target Points Selection -->
+        <div class="lg:col-span-7 space-y-3">
+          <div class="flex items-center justify-between text-xs sm:text-sm">
+            <span class="text-indigo-200 font-semibold">目標大盤點位設定：</span>
+            <div class="flex items-center gap-2">
+              <span id="targetIndexDisplay" class="font-mono text-2xl sm:text-3xl font-black text-amber-400">50,000</span>
+              <span class="text-xs text-amber-200 font-bold">點</span>
+              <span id="indexGainBadge" class="ml-2 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono">
+                大盤預估 +13.64%
+              </span>
+            </div>
+          </div>
+
+          <!-- Quick Preset Buttons -->
+          <div class="flex flex-wrap gap-2">
+            <button onclick="setTargetIndex(50000)" id="idxBtn50000" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border border-amber-400 bg-amber-400 text-slate-950 shadow-sm">50,000 點 (標準)</button>
+            <button onclick="setTargetIndex(51000)" id="idxBtn51000" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border border-indigo-700 bg-indigo-950/70 text-indigo-200 hover:border-amber-400">51,000 點</button>
+            <button onclick="setTargetIndex(52000)" id="idxBtn52000" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border border-indigo-700 bg-indigo-950/70 text-indigo-200 hover:border-amber-400">52,000 點</button>
+            <button onclick="setTargetIndex(55000)" id="idxBtn55000" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border border-indigo-700 bg-indigo-950/70 text-indigo-200 hover:border-amber-400">55,000 點 🚀</button>
+            <button onclick="setTargetIndex(60000)" id="idxBtn60000" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border border-indigo-700 bg-indigo-950/70 text-indigo-200 hover:border-amber-400">60,000 點 狂飆</button>
+          </div>
+
+          <input type="range" id="targetIndexSlider" min="44000" max="65000" step="500" value="50000"
+                 class="w-full accent-amber-400 cursor-pointer h-2 bg-slate-800 rounded-lg">
+        </div>
+
+        <!-- Simulation Capital Baseline -->
+        <div class="lg:col-span-5 bg-slate-950/70 border border-indigo-800/60 p-4 rounded-2xl space-y-3">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-indigo-200 font-semibold">單檔投入本金基準：</span>
+            <div class="flex items-center gap-1.5">
+              <input type="number" id="capitalInput" value="10" min="5" max="1000" step="5"
+                     class="w-20 bg-slate-900 text-white border border-indigo-500 rounded-lg px-2 py-1 font-mono font-bold text-right text-sm">
+              <span class="text-xs font-bold text-amber-300">萬元 NTD</span>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="setCapital(10)" class="text-xs px-2.5 py-1 rounded-lg border border-indigo-700 bg-indigo-950 hover:border-amber-400 text-indigo-200">10 萬基準</button>
+            <button onclick="setCapital(30)" class="text-xs px-2.5 py-1 rounded-lg border border-indigo-700 bg-indigo-950 hover:border-amber-400 text-indigo-200">30 萬</button>
+            <button onclick="setCapital(50)" class="text-xs px-2.5 py-1 rounded-lg border border-indigo-700 bg-indigo-950 hover:border-amber-400 text-indigo-200">50 萬</button>
+            <button onclick="setCapital(100)" class="text-xs px-2.5 py-1 rounded-lg border border-indigo-700 bg-indigo-950 hover:border-amber-400 text-indigo-200">100 萬</button>
+          </div>
+          <div class="text-[11px] text-indigo-300/80 pt-1 border-t border-indigo-800/60">
+            💡 卡片下方即時計算「每投入 <span id="capitalText" class="text-amber-300 font-bold">10 萬元</span> 之預估獲利金額」
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: 雙重演算法規範說明卡片 (Pure Card & List) -->
+    <section class="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+          雙重位階判定演算法與綜合燈號規則
+        </h2>
+        <span class="text-xs text-slate-500">模型 A 與 模型 B 雙軌交叉驗證</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <!-- Model A Card -->
+        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-900 text-sm">模型 A：波段高點回檔法</span>
+            <span class="text-[11px] font-mono text-slate-500">Drawdown (DD)</span>
+          </div>
+          <p class="text-slate-500 text-[11px]">計算公式：DD = (P_peak - P_current) / P_peak × 100%</p>
+          <ul class="space-y-1.5 pt-1 text-slate-700">
+            <li class="flex items-center gap-1.5"><span class="text-rose-500 font-bold">🔴 昂貴價：</span>DD &lt; 10%（距高點不到一成，追高風險大）</li>
+            <li class="flex items-center gap-1.5"><span class="text-amber-500 font-bold">🟡 合理價：</span>15% ≤ DD ≤ 20%（常態健康回測區間）</li>
+            <li class="flex items-center gap-1.5"><span class="text-emerald-600 font-bold">🟢 甜甜價：</span>DD ≥ 25%（超跌打折區，達 30% 為極甜）</li>
+          </ul>
+        </div>
+
+        <!-- Model B Card -->
+        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-900 text-sm">模型 B：均線負乖離法</span>
+            <span class="text-[11px] font-mono text-slate-500">BIAS (60MA / 120MA)</span>
+          </div>
+          <p class="text-slate-500 text-[11px]">以 60MA 為主，120MA 為輔：BIAS = (P - MA) / MA × 100%</p>
+          <ul class="space-y-1.5 pt-1 text-slate-700">
+            <li class="flex items-center gap-1.5"><span class="text-rose-500 font-bold">🔴 昂貴價：</span>BIAS_60 &gt; +15%（正乖離過大、短線過熱）</li>
+            <li class="flex items-center gap-1.5"><span class="text-amber-500 font-bold">🟡 合理價：</span>-5% ≤ BIAS_60 ≤ +5%（均線糾結回測支撐）</li>
+            <li class="flex items-center gap-1.5"><span class="text-emerald-600 font-bold">🟢 甜甜價：</span>BIAS_60 ≤ -10% 或 BIAS_120 ≤ -12%（超跌拉回）</li>
+          </ul>
+        </div>
+
+        <!-- Combined Status Card -->
+        <div class="bg-gradient-to-br from-indigo-50/70 to-blue-50/50 rounded-2xl p-4 border border-indigo-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-indigo-950 text-sm">綜合燈號判定規律</span>
+            <span class="text-[11px] font-mono text-indigo-600 font-bold">Dual Evaluation</span>
+          </div>
+          <p class="text-slate-500 text-[11px]">兼顧高點安全邊際與均線支撐力道</p>
+          <ul class="space-y-1.5 pt-1 text-slate-700">
+            <li class="flex items-center gap-1.5"><span class="font-bold text-emerald-700">💎 雙重甜甜價：</span>模型 A 與 模型 B 同時符合甜甜價</li>
+            <li class="flex items-center gap-1.5"><span class="font-bold text-amber-600">🟡 偏甜 / 合理：</span>符合其中一項甜甜價，或兩者皆處合理區</li>
+            <li class="flex items-center gap-1.5"><span class="font-bold text-rose-600">🔴 昂貴過熱：</span>符合任一昂貴價標準，宜分批獲利或觀望</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filters & Category Navigation (Pure Tags & Chips) -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+      <!-- Type Filter -->
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-xs font-bold text-slate-500 mr-1">標的分類：</span>
+        <button onclick="setCategoryFilter('all')" id="catAll" class="text-xs px-3.5 py-1.5 rounded-xl border border-blue-600 bg-blue-50 text-blue-700 font-bold">全部標的 (<span id="countAll">0</span>)</button>
+        <button onclick="setCategoryFilter('etf')" id="catEtf" class="text-xs px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-400 font-medium">💻 科技 / 主動 ETF (<span id="countEtf">0</span>)</button>
+        <button onclick="setCategoryFilter('fund')" id="catFund" class="text-xs px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-400 font-medium">🏢 高科技佔比基金 (<span id="countFund">0</span>)</button>
+      </div>
+
+      <!-- Combined Status Filter -->
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-xs font-bold text-slate-500 mr-1">位階狀態：</span>
+        <button onclick="setStatusFilter('all')" id="statusAll" class="text-xs px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-800 text-white font-bold">全部</button>
+        <button onclick="setStatusFilter('dual_sweet')" id="statusSweet" class="text-xs px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold">💎 雙重甜甜 (<span id="countSweet">0</span>)</button>
+        <button onclick="setStatusFilter('fair')" id="statusFair" class="text-xs px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 font-semibold">🟡 偏甜/合理 (<span id="countFair">0</span>)</button>
+        <button onclick="setStatusFilter('expensive')" id="statusExp" class="text-xs px-3 py-1.5 rounded-xl border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 font-semibold">🔴 昂貴過熱 (<span id="countExp">0</span>)</button>
+      </div>
+    </div>
+
+    <!-- MAIN CARDS CONTAINER (Pure Cards, Strictly Zero HTML Tables) -->
+    <div id="targetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <!-- Dynamic Structured Cards -->
+    </div>
+
+    <!-- DYNAMIC ADD MODAL (Pure Dialog Card, No Tables) -->
+    <div id="addTargetModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+            <h3 class="text-lg font-extrabold text-slate-900">動態新增追蹤標的</h3>
+          </div>
+          <button onclick="closeAddTargetModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold flex items-center justify-center text-sm">✕</button>
+        </div>
+
+        <form id="addTargetForm" onsubmit="handleAddTarget(event)" class="space-y-3 text-xs">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">標的代碼</label>
+              <input type="text" id="addCode" placeholder="如 00935 或 NMHT" required
+                     class="w-full border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono focus:border-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">標的種類</label>
+              <select id="addType" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:border-indigo-500 outline-none">
+                <option value="etf">台股科技 / 主動 ETF</option>
+                <option value="fund">高科技佔比共同基金</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">標的完整名稱</label>
+            <input type="text" id="addName" placeholder="如 野村臺灣新科技50" required
+                   class="w-full border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:border-indigo-500 outline-none">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">最新淨值 / 報價 (元)</label>
+              <input type="number" step="0.01" id="addCurrentPrice" placeholder="23.15" required
+                     class="w-full border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono focus:border-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">近 1 年最高點 (元)</label>
+              <input type="number" step="0.01" id="addPeakPrice" placeholder="25.20" required
+                     class="w-full border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono focus:border-indigo-500 outline-none">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">季線 60MA</label>
+              <input type="number" step="0.01" id="addMa60" placeholder="22.60" required
+                     class="w-full border border-slate-300 rounded-xl px-2.5 py-2 text-slate-900 font-mono focus:border-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">半年線 120MA</label>
+              <input type="number" step="0.01" id="addMa120" placeholder="21.50" required
+                     class="w-full border border-slate-300 rounded-xl px-2.5 py-2 text-slate-900 font-mono focus:border-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">連動係數 Beta</label>
+              <input type="number" step="0.1" id="addBeta" placeholder="1.8" value="1.8" required
+                     class="w-full border border-slate-300 rounded-xl px-2.5 py-2 text-slate-900 font-mono focus:border-indigo-500 outline-none">
+            </div>
+          </div>
+
+          <div class="pt-2 flex justify-end gap-2">
+            <button type="button" onclick="closeAddTargetModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50">取消</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold">確認新增標的</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // State Variables
+    let lastUpdatedTimestamp = "2026-11-04 12:05:20";
+    let baseMarketIndex = 44000;
+    let currentTargetIndex = 50000;
+    let currentCapitalTenThousand = 10; // 預設 10 萬元基準
+
+    let currentCategoryFilter = "all";
+    let currentStatusFilter = "all";
+    let expandedCardIds = new Set(); // For toggling card expansion
+
+    // Monitored Targets Initial Data (7 Tech ETFs + 5 High-Tech Funds)
+    let targetsList = [
+      {
+        id: "ETF_00992A",
+        code: "00992A",
+        name: "主動群益台灣科技創新",
+        type: "etf",
+        category: "台股主動科技型 ETF",
+        issuer: "群益投信",
+        current_price: 14.76,
+        change_pct: 1.25,
+        peak_price: 16.80,
+        ma_60: 15.20,
+        ma_120: 15.80,
+        beta: 1.80,
+        tech_ratio: 95,
+        official_url: "https://www.capitalfund.com.tw/",
+        query_url: "https://www.twse.com.tw/"
+      },
+      {
+        id: "ETF_00981A",
+        code: "00981A",
+        name: "主動統一台股增長",
+        type: "etf",
+        category: "台股主動權值成長 ETF",
+        issuer: "統一投信",
+        current_price: 24.88,
+        change_pct: 2.10,
+        peak_price: 26.50,
+        ma_60: 23.50,
+        ma_120: 21.80,
+        beta: 1.50,
+        tech_ratio: 88,
+        official_url: "https://www.ezmoney.com.tw/",
+        query_url: "https://www.twse.com.tw/"
+      },
+      {
+        id: "ETF_0050",
+        code: "0050",
+        name: "元大台灣50",
+        type: "etf",
+        category: "市值型龍頭 ETF",
+        issuer: "元大投信",
+        current_price: 194.50,
+        change_pct: 0.85,
+        peak_price: 205.00,
+        ma_60: 190.00,
+        ma_120: 182.00,
+        beta: 1.20,
+        tech_ratio: 72,
+        official_url: "https://www.yuantafunds.com/fund/intro/0050",
+        query_url: "https://www.twse.com.tw/"
+      },
+      {
+        id: "ETF_0052",
+        code: "0052",
+        name: "富邦科技",
+        type: "etf",
+        category: "純科技龍頭 ETF",
+        issuer: "富邦投信",
+        current_price: 192.30,
+        change_pct: 1.45,
+        peak_price: 210.00,
+        ma_60: 188.00,
+        ma_120: 179.00,
+        beta: 1.80,
+        tech_ratio: 98,
+        official_url: "https://www.fubon.com/asset-management/fund/0052",
+        query_url: "https://www.twse.com.tw/"
+      },
+      {
+        id: "ETF_00881",
+        code: "00881",
+        name: "國泰台灣5G+",
+        type: "etf",
+        category: "通訊半導體 ETF",
+        issuer: "國泰投信",
+        current_price: 26.40,
+        change_pct: 0.75,
+        peak_price: 28.80,
+        ma_60: 25.80,
+        ma_120: 24.50,
+        beta: 1.60,
+        tech_ratio: 92,
+        official_url: "https://www.cathaysite.com.tw/funds/detail/00881",
+        query_url: "https://www.twse.com.tw/"
+      },
+      {
+        id: "ETF_00935",
+        code: "00935",
+        name: "野村臺灣新科技50",
+        type: "etf",
+        category: "創新科技50 ETF",
+        issuer: "野村投信",
+        current_price: 23.15,
+        change_pct: 1.10,
+        peak_price: 25.20,
+        ma_60: 22.60,
+        ma_120: 21.50,
+        beta: 1.60,
+        tech_ratio: 90,
+        official_url: "https://www.nomuramt.com.tw/",
+        query_url: "https://www.twse.com.tw/"
+      },
+      {
+        id: "ETF_00941",
+        code: "00941",
+        name: "中信上游半導體",
+        type: "etf",
+        category: "關鍵半導體材料設備 ETF",
+        issuer: "中國信託投信",
+        current_price: 16.25,
+        change_pct: -0.30,
+        peak_price: 18.50,
+        ma_60: 16.80,
+        ma_120: 17.20,
+        beta: 1.70,
+        tech_ratio: 95,
+        official_url: "https://www.ctbcinvestments.com/",
+        query_url: "https://www.twse.com.tw/"
+      },
+      {
+        id: "FUND_ALZTWTC",
+        code: "ALZTWTC",
+        name: "安聯台灣科技基金",
+        type: "fund",
+        category: "高科技佔比共同基金 (科技佔比 > 85%)",
+        issuer: "安聯投信 (蕭惠中)",
+        current_price: 238.52,
+        change_pct: 1.60,
+        peak_price: 265.00,
+        ma_60: 232.00,
+        ma_120: 220.00,
+        beta: 1.80,
+        tech_ratio: 88,
+        official_url: "https://tw.allianzgi.com/zh-tw/our-funds/funds/list/allianz-global-investors-taiwan-technology-fund-twd",
+        query_url: "https://www.fundrich.com.tw/fund/009033.html"
+      },
+      {
+        id: "FUND_UPPEN",
+        code: "UPPEN",
+        name: "統一奔騰基金",
+        type: "fund",
+        category: "高科技佔比共同基金 (科技佔比 > 90%)",
+        issuer: "統一投信 (陳釧瑤)",
+        current_price: 225.18,
+        change_pct: 1.85,
+        peak_price: 252.00,
+        ma_60: 220.00,
+        ma_120: 208.00,
+        beta: 1.80,
+        tech_ratio: 92,
+        official_url: "https://www.ezmoney.com.tw/Fund/FundDetail?fundId=002002",
+        query_url: "https://www.fundrich.com.tw/fund/005002.html"
+      },
+      {
+        id: "FUND_UPBLKH",
+        code: "UPBLKH",
+        name: "統一黑馬基金",
+        type: "fund",
+        category: "高科技佔比共同基金 (科技佔比 > 75%)",
+        issuer: "統一投信 (文毅尤)",
+        current_price: 186.50,
+        change_pct: 0.95,
+        peak_price: 220.00,
+        ma_60: 185.00,
+        ma_120: 178.00,
+        beta: 1.60,
+        tech_ratio: 78,
+        official_url: "https://www.ezmoney.com.tw/Fund/FundDetail?fundId=002001",
+        query_url: "https://www.fundrich.com.tw/fund/005001.html"
+      },
+      {
+        id: "FUND_NMHT",
+        code: "NMHT",
+        name: "野村高科技基金",
+        type: "fund",
+        category: "高科技佔比共同基金 (科技佔比 > 85%)",
+        issuer: "野村投信 (謝芝朕)",
+        current_price: 162.80,
+        change_pct: 1.30,
+        peak_price: 185.00,
+        ma_60: 158.00,
+        ma_120: 150.00,
+        beta: 1.80,
+        tech_ratio: 86,
+        official_url: "https://www.nomuramt.com.tw/",
+        query_url: "https://www.fundrich.com.tw/fund/003004.html"
+      },
+      {
+        id: "FUND_TSGCN",
+        code: "TSGCN",
+        name: "台新中國通基金",
+        type: "fund",
+        category: "高科技持股型基金 (科技佔比 > 70%)",
+        issuer: "台新投信 (魏永祥)",
+        current_price: 98.40,
+        change_pct: 0.55,
+        peak_price: 115.00,
+        ma_60: 99.00,
+        ma_120: 95.00,
+        beta: 1.60,
+        tech_ratio: 73,
+        official_url: "https://www.tsit.com.tw/",
+        query_url: "https://www.fundrich.com.tw/fund/012001.html"
+      }
+    ];
+
+    // Dual Algorithm Assessment
+    function computeDualEvaluation(item) {
+      const p = item.current_price;
+      const peak = item.peak_price;
+      const ma60 = item.ma_60;
+      const ma120 = item.ma_120;
+
+      // Model A: Drawdown
+      const dd = peak > 0 ? ((peak - p) / peak) * 100 : 0;
+      let modelAStatus = "fair";
+      let modelATag = "🟡 合理價 (常態回測)";
+      if (dd >= 25.0) {
+        modelAStatus = "sweet";
+        modelATag = dd >= 30.0 ? "🟢 極甜超跌價 (≥30%)" : "🟢 甜甜價 (超跌打折)";
+      } else if (dd < 10.0) {
+        modelAStatus = "expensive";
+        modelATag = "🔴 昂貴價 (追高風險大)";
+      } else if (dd >= 15.0 && dd <= 20.0) {
+        modelAStatus = "fair";
+        modelATag = "🟡 合理價 (健康整理)";
+      } else {
+        modelAStatus = dd < 15.0 ? "fair_high" : "fair_low";
+        modelATag = "🟡 常態整理區間";
+      }
+
+      // Model B: BIAS
+      const bias60 = ma60 > 0 ? ((p - ma60) / ma60) * 100 : 0;
+      const bias120 = ma120 > 0 ? ((p - ma120) / ma120) * 100 : 0;
+      let modelBStatus = "fair";
+      let modelBTag = "🟡 常態震盪";
+
+      if (bias60 <= -10.0 || bias120 <= -12.0) {
+        modelBStatus = "sweet";
+        modelBTag = "🟢 甜甜價 (負乖離超跌)";
+      } else if (bias60 > 15.0) {
+        modelBStatus = "expensive";
+        modelBTag = "🔴 昂貴價 (正乖離過大)";
+      } else if (bias60 >= -5.0 && bias60 <= 5.0) {
+        modelBStatus = "fair";
+        modelBTag = "🟡 合理價 (均線糾結支撐)";
+      } else {
+        modelBStatus = bias60 < 0 ? "fair_low" : "fair_high";
+        modelBTag = bias60 < 0 ? "🟡 負乖離偏甜" : "🟡 正乖離偏高";
+      }
+
+      // Combined Synthesis
+      let combinedKey = "fair";
+      let combinedBadge = "🟡 偏甜 / 合理";
+      let badgeStyle = "bg-amber-100 text-amber-800 border-amber-300";
+
+      if (modelAStatus === "sweet" && modelBStatus === "sweet") {
+        combinedKey = "dual_sweet";
+        combinedBadge = "💎 雙重甜甜價";
+        badgeStyle = "bg-emerald-100 text-emerald-800 border-emerald-300";
+      } else if (modelAStatus === "expensive" || modelBStatus === "expensive") {
+        combinedKey = "expensive";
+        combinedBadge = "🔴 昂貴過熱";
+        badgeStyle = "bg-rose-100 text-rose-800 border-rose-300";
+      }
+
+      return {
+        ddPct: dd,
+        bias60Pct: bias60,
+        bias120Pct: bias120,
+        modelA: { status: modelAStatus, tag: modelATag },
+        modelB: { status: modelBStatus, tag: modelBTag },
+        combined: { key: combinedKey, badge: combinedBadge, style: badgeStyle }
+      };
+    }
+
+    // 50,000 Points Projection
+    function computeProjection(item, baseIdx, targetIdx, capitalTenThousand) {
+      const deltaIndex = (targetIdx - baseIdx) / baseIdx;
+      const targetGain = deltaIndex * item.beta;
+      const targetPrice = item.current_price * (1 + targetGain);
+      const profit = (capitalTenThousand * 10000) * targetGain;
+
+      return {
+        deltaIndexPct: deltaIndex * 100,
+        targetGainPct: targetGain * 100,
+        targetPrice,
+        profit
+      };
+    }
+
+    // UI Handlers
+    function setTargetIndex(idx) {
+      currentTargetIndex = idx;
+      document.getElementById("targetIndexSlider").value = idx;
+      updateScenarioLabels();
+      renderCards();
+    }
+
+    function setCapital(val) {
+      currentCapitalTenThousand = val;
+      document.getElementById("capitalInput").value = val;
+      document.getElementById("capitalText").textContent = `${val} 萬元`;
+      renderCards();
+    }
+
+    function setCategoryFilter(cat) {
+      currentCategoryFilter = cat;
+      ['all', 'etf', 'fund'].forEach(c => {
+        const btn = document.getElementById(`cat${c.charAt(0).toUpperCase() + c.slice(1)}`);
+        if (c === cat) {
+          btn.className = "text-xs px-3.5 py-1.5 rounded-xl border border-blue-600 bg-blue-50 text-blue-700 font-bold";
+        } else {
+          btn.className = "text-xs px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-400 font-medium";
+        }
+      });
+      renderCards();
+    }
+
+    function setStatusFilter(st) {
+      currentStatusFilter = st;
+      const map = {
+        all: "statusAll",
+        dual_sweet: "statusSweet",
+        fair: "statusFair",
+        expensive: "statusExp"
+      };
+      Object.keys(map).forEach(k => {
+        const btn = document.getElementById(map[k]);
+        if (k === st) {
+          btn.className = "text-xs px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-800 text-white font-bold";
+        } else {
+          btn.className = "text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-400 font-semibold";
+        }
+      });
+      renderCards();
+    }
+
+    function toggleCardExpansion(id) {
+      if (expandedCardIds.has(id)) {
+        expandedCardIds.delete(id);
+      } else {
+        expandedCardIds.add(id);
+      }
+      renderCards();
+    }
+
+    function updateScenarioLabels() {
+      document.getElementById("targetIndexDisplay").textContent = currentTargetIndex.toLocaleString();
+      const deltaIdx = ((currentTargetIndex - baseMarketIndex) / baseMarketIndex) * 100;
+      document.getElementById("indexGainBadge").textContent = `大盤預估 ${deltaIdx >= 0 ? '+' : ''}${deltaIdx.toFixed(2)}%`;
+
+      [50000, 51000, 52000, 55000, 60000].forEach(p => {
+        const btn = document.getElementById(`idxBtn${p}`);
+        if (btn) {
+          if (p === currentTargetIndex) {
+            btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border border-amber-400 bg-amber-400 text-slate-950 shadow-sm";
+          } else {
+            btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border border-indigo-700 bg-indigo-950/70 text-indigo-200 hover:border-amber-400";
+          }
+        }
+      });
+    }
+
+    // Modal Handlers
+    function openAddTargetModal() {
+      document.getElementById("addTargetModal").classList.remove("hidden");
+    }
+
+    function closeAddTargetModal() {
+      document.getElementById("addTargetModal").classList.add("hidden");
+    }
+
+    function handleAddTarget(e) {
+      e.preventDefault();
+      const code = document.getElementById("addCode").value.trim().toUpperCase();
+      const type = document.getElementById("addType").value;
+      const name = document.getElementById("addName").value.trim();
+      const pCurr = parseFloat(document.getElementById("addCurrentPrice").value);
+      const pPeak = parseFloat(document.getElementById("addPeakPrice").value);
+      const ma60 = parseFloat(document.getElementById("addMa60").value);
+      const ma120 = parseFloat(document.getElementById("addMa120").value);
+      const beta = parseFloat(document.getElementById("addBeta").value) || 1.8;
+
+      const newTarget = {
+        id: `CUSTOM_${code}_${Date.now()}`,
+        code,
+        name,
+        type,
+        category: type === "etf" ? "自訂科技型 ETF" : "自訂高科技基金",
+        issuer: "自訂新增標的",
+        current_price: pCurr,
+        change_pct: 0.0,
+        peak_price: pPeak,
+        ma_60: ma60,
+        ma_120: ma120,
+        beta,
+        tech_ratio: 85,
+        official_url: "https://www.twse.com.tw/",
+        query_url: "https://www.twse.com.tw/"
+      };
+
+      targetsList.unshift(newTarget);
+      closeAddTargetModal();
+      document.getElementById("addTargetForm").reset();
+      renderCards();
+    }
+
+    function refreshData() {
+      const btn = document.getElementById("refreshBtn");
+      const icon = document.getElementById("refreshIcon");
+      const text = document.getElementById("refreshText");
+      icon.classList.add("animate-spin");
+      text.textContent = "運算更新中...";
+
+      setTimeout(() => {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        lastUpdatedTimestamp = `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+        document.getElementById("lastUpdatedBadge").textContent = lastUpdatedTimestamp;
+
+        icon.classList.remove("animate-spin");
+        text.textContent = "更新成功！";
+        setTimeout(() => { text.textContent = "重新計算更新"; }, 2000);
+        renderCards();
+      }, 500);
+    }
+
+    // MAIN RENDER (Strictly NO HTML Tables)
+    function renderCards() {
+      const processed = targetsList.map(item => {
+        const evalRes = computeDualEvaluation(item);
+        const projRes = computeProjection(item, baseMarketIndex, currentTargetIndex, currentCapitalTenThousand);
+        return {
+          ...item,
+          eval: evalRes,
+          proj: projRes
+        };
+      });
+
+      // Update counters
+      document.getElementById("countAll").textContent = processed.length;
+      document.getElementById("countEtf").textContent = processed.filter(t => t.type === 'etf').length;
+      document.getElementById("countFund").textContent = processed.filter(t => t.type === 'fund').length;
+
+      document.getElementById("countSweet").textContent = processed.filter(t => t.eval.combined.key === 'dual_sweet').length;
+      document.getElementById("countFair").textContent = processed.filter(t => t.eval.combined.key === 'fair').length;
+      document.getElementById("countExp").textContent = processed.filter(t => t.eval.combined.key === 'expensive').length;
+
+      // Filter
+      const filtered = processed.filter(item => {
+        if (currentCategoryFilter !== 'all' && item.type !== currentCategoryFilter) return false;
+        if (currentStatusFilter !== 'all' && item.eval.combined.key !== currentStatusFilter) return false;
+        return true;
+      });
+
+      // Build Cards HTML (Structured Card layout, Tag pills, List blocks)
+      const cardsHtml = filtered.map(t => {
+        const ev = t.eval;
+        const pj = t.proj;
+        const isExpanded = expandedCardIds.has(t.id);
+        const changeClass = t.change_pct >= 0 ? 'text-rose-600' : 'text-emerald-600';
+        const changeSign = t.change_pct >= 0 ? '+' : '';
+
+        return `
+          <div class="bg-white border border-slate-200 hover:border-indigo-400 rounded-3xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+            
+            <!-- Card Header: Code, Type Tag, Combined Valuation Tag -->
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-2.5 py-0.5 rounded-lg text-xs font-mono font-extrabold bg-slate-100 text-slate-800">${t.code}</span>
+                  <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 text-indigo-700">${t.type === 'etf' ? '科技ETF' : '科技基金'}</span>
+                </div>
+                <span class="px-3 py-1 rounded-full text-xs font-extrabold border ${ev.combined.style}">
+                  ${ev.combined.badge}
+                </span>
+              </div>
+
+              <!-- Name & Current Price Block -->
+              <div class="flex items-baseline justify-between pt-1">
+                <div>
+                  <h3 class="font-extrabold text-base text-slate-900 line-clamp-1" title="${t.name}">
+                    ${t.name}
+                  </h3>
+                  <p class="text-[11px] text-slate-400 mt-0.5">${t.issuer} ‧ 科技持股 ${t.tech_ratio}% ‧ Beta ${t.beta.toFixed(2)}</p>
+                </div>
+                <div class="text-right">
+                  <div class="font-mono text-xl font-black text-slate-900">${t.current_price.toFixed(2)} <span class="text-xs text-slate-400 font-normal">元</span></div>
+                  <div class="font-mono text-xs font-bold ${changeClass}">${changeSign}${t.change_pct.toFixed(2)}%</div>
+                </div>
+              </div>
+
+              <!-- Dual Model Analysis Block (Structured Itemized List) -->
+              <div class="bg-slate-50/90 rounded-2xl p-3 border border-slate-100 space-y-2 text-xs">
+                
+                <!-- Model A: Drawdown -->
+                <div class="space-y-1">
+                  <div class="flex justify-between items-center">
+                    <span class="text-slate-600 font-medium">波段回檔分析 (模型 A)：</span>
+                    <span class="font-bold ${ev.modelA.status === 'sweet' ? 'text-emerald-600' : (ev.modelA.status === 'expensive' ? 'text-rose-600' : 'text-amber-600')}">
+                      ${ev.modelA.tag}
+                    </span>
+                  </div>
+                  <div class="flex justify-between text-[11px] text-slate-500 font-mono">
+                    <span>近1年波段高點：${t.peak_price.toFixed(2)} 元</span>
+                    <span class="font-bold text-slate-800">距高點已回檔 -${ev.ddPct.toFixed(2)}%</span>
+                  </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="border-t border-slate-200/60"></div>
+
+                <!-- Model B: BIAS -->
+                <div class="space-y-1">
+                  <div class="flex justify-between items-center">
+                    <span class="text-slate-600 font-medium">均線乖離分析 (模型 B)：</span>
+                    <span class="font-bold ${ev.modelB.status === 'sweet' ? 'text-emerald-600' : (ev.modelB.status === 'expensive' ? 'text-rose-600' : 'text-amber-600')}">
+                      ${ev.modelB.tag}
+                    </span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-1 text-[11px] text-slate-500 font-mono">
+                    <span>季線 60MA (${t.ma_60.toFixed(2)})：<b class="${ev.bias60Pct < 0 ? 'text-emerald-600' : 'text-slate-700'}">${ev.bias60Pct >= 0 ? '+' : ''}${ev.bias60Pct.toFixed(2)}%</b></span>
+                    <span>半年線 120MA (${t.ma_120.toFixed(2)})：<b class="${ev.bias120Pct < 0 ? 'text-emerald-600' : 'text-slate-700'}">${ev.bias120Pct >= 0 ? '+' : ''}${ev.bias120Pct.toFixed(2)}%</b></span>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- 50,000 Points Projection Box -->
+              <div class="bg-indigo-950 text-white rounded-2xl p-3.5 space-y-2">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-indigo-200 font-bold flex items-center gap-1">
+                    <span>🚀 大盤 ${currentTargetIndex.toLocaleString()} 點推估</span>
+                  </span>
+                  <span class="font-mono font-extrabold text-amber-400 text-sm">+${pj.targetGainPct.toFixed(2)}%</span>
+                </div>
+
+                <div class="flex justify-between items-baseline text-xs font-mono">
+                  <span class="text-indigo-300">預估目標價格</span>
+                  <span class="text-base font-black text-white">${pj.targetPrice.toFixed(2)} 元</span>
+                </div>
+
+                <div class="pt-1.5 border-t border-indigo-800/70 flex justify-between items-baseline text-xs font-mono">
+                  <span class="text-indigo-300">每投入 ${currentCapitalTenThousand} 萬元預估獲利</span>
+                  <span class="text-base font-extrabold text-emerald-300">+NT$ ${Math.round(pj.profit).toLocaleString()} 元</span>
+                </div>
+              </div>
+
+              <!-- Expandable Detailed Section (Toggled by user click) -->
+              ${isExpanded ? `
+                <div class="bg-white rounded-2xl p-3 border border-indigo-100 space-y-2.5 text-xs animate-fadeIn">
+                  <div class="font-bold text-slate-900 border-b border-slate-100 pb-1.5 flex justify-between items-center">
+                    <span>📋 多階段點位情境矩陣</span>
+                    <span class="text-[10px] text-slate-400">依 Beta ${t.beta.toFixed(2)} 彈性推算</span>
+                  </div>
+                  
+                  <div class="space-y-1.5 font-mono text-[11px]">
+                    ${[44000, 50000, 51000, 52000, 55000].map(pt => {
+                      const sc = computeProjection(t, baseMarketIndex, pt, currentCapitalTenThousand);
+                      const isSel = pt === currentTargetIndex;
+                      return `
+                        <div class="flex items-center justify-between p-1.5 rounded-lg ${isSel ? 'bg-amber-50 text-amber-900 font-bold border border-amber-200' : 'bg-slate-50 text-slate-700'}">
+                          <span>${pt.toLocaleString()} 點 (${sc.deltaIndexPct >= 0 ? '+' : ''}${sc.deltaIndexPct.toFixed(1)}%)</span>
+                          <span>目標 ${sc.targetPrice.toFixed(2)} 元</span>
+                          <span class="text-indigo-700">+NT$ ${Math.round(sc.profit).toLocaleString()}</span>
+                        </div>
+                      `;
+                    }).join("")}
+                  </div>
+
+                  <div class="pt-1 text-[10px] text-slate-400">
+                    * 註：模型推估僅供資產配置參考，實際交易請考量流動性與市場波動風險。
+                  </div>
+                </div>
+              ` : ''}
+
+            </div>
+
+            <!-- Card Bottom Action Row -->
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+              <button onclick="toggleCardExpansion('${t.id}')" 
+                      class="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-indigo-400 bg-white text-indigo-700 font-bold transition-all shadow-2xs">
+                ${isExpanded ? '收起細節 ▲' : '點選展開完整推估 ▼'}
+              </button>
+
+              <div class="flex items-center gap-1.5">
+                <a href="${t.official_url}" target="_blank" rel="noopener noreferrer" 
+                   class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors">
+                  官網
+                </a>
+                <a href="${t.query_url}" target="_blank" rel="noopener noreferrer" 
+                   class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors">
+                  觀測站
+                </a>
+              </div>
+            </div>
+
+          </div>
+        `;
+      }).join("");
+
+      document.getElementById("targetsGrid").innerHTML = cardsHtml || `
+        <div class="col-span-3 text-center py-12 text-slate-400 bg-white rounded-3xl border border-slate-200">
+          <p class="text-base font-bold text-slate-600">無符合當前篩選條件的標的</p>
+          <p class="text-xs text-slate-400 mt-1">請調整上方的標的分類或價格位階狀態篩選</p>
+        </div>
+      `;
+    }
+
+    // Event Listeners for inputs
+    document.getElementById("targetIndexSlider").addEventListener("input", (e) => {
+      currentTargetIndex = parseInt(e.target.value);
+      updateScenarioLabels();
+      renderCards();
+    });
+
+    document.getElementById("baseIndexInput").addEventListener("input", (e) => {
+      baseMarketIndex = parseFloat(e.target.value) || 44000;
+      document.getElementById("baseIndexText").textContent = baseMarketIndex.toLocaleString();
+      updateScenarioLabels();
+      renderCards();
+    });
+
+    document.getElementById("capitalInput").addEventListener("input", (e) => {
+      currentCapitalTenThousand = parseFloat(e.target.value) || 10;
+      document.getElementById("capitalText").textContent = `${currentCapitalTenThousand} 萬元`;
+      renderCards();
+    });
+
+    // Init
+    updateScenarioLabels();
+    renderCards();
+  </script>
+</body>
+</html>

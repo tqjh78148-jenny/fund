@@ -1,0 +1,525 @@
+{
+  "last_updated": "2026-11-04 12:08:40",
+  "base_market_index": 44000,
+  "default_target_index": 50000,
+  "market_index_name": "台灣加權股價指數 (TAIEX)",
+  "data_status": "台股科技ETF與高科技基金雙重位階(回檔DD + 均線BIAS)暨50000點推估核心資料",
+  "targets": [
+    {
+      "id": "ETF_00992A",
+      "code": "00992A",
+      "name": "主動群益台灣科技創新",
+      "type": "etf",
+      "category": "台股主動科技型 ETF",
+      "issuer": "群益投信",
+      "current_price": 14.76,
+      "change_pct": 1.25,
+      "peak_price": 16.8,
+      "ma_60": 15.2,
+      "ma_120": 15.8,
+      "beta": 1.8,
+      "tech_ratio": 95,
+      "official_url": "https://www.capitalfund.com.tw/",
+      "query_url": "https://www.twse.com.tw/",
+      "evaluation": {
+        "dd_pct": 12.14,
+        "bias_60_pct": -2.89,
+        "bias_120_pct": -6.58,
+        "model_a": {
+          "status": "合理偏高",
+          "tag": "🟡 常態整理區間"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 24.55,
+        "target_price": 18.38,
+        "profit_per_100k": 24545.0
+      }
+    },
+    {
+      "id": "ETF_00981A",
+      "code": "00981A",
+      "name": "主動統一台股增長",
+      "type": "etf",
+      "category": "台股主動權值成長 ETF",
+      "issuer": "統一投信",
+      "current_price": 24.88,
+      "change_pct": 2.1,
+      "peak_price": 26.5,
+      "ma_60": 23.5,
+      "ma_120": 21.8,
+      "beta": 1.5,
+      "tech_ratio": 88,
+      "official_url": "https://www.ezmoney.com.tw/",
+      "query_url": "https://www.twse.com.tw/",
+      "evaluation": {
+        "dd_pct": 6.11,
+        "bias_60_pct": 5.87,
+        "bias_120_pct": 14.13,
+        "model_a": {
+          "status": "昂貴價",
+          "tag": "🔴 昂貴價 (追高風險大)"
+        },
+        "model_b": {
+          "status": "合理偏高",
+          "tag": "🟡 常態震盪"
+        },
+        "combined": {
+          "status": "expensive",
+          "tag": "🔴 昂貴過熱",
+          "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 20.45,
+        "target_price": 29.97,
+        "profit_per_100k": 20455.0
+      }
+    },
+    {
+      "id": "ETF_0050",
+      "code": "0050",
+      "name": "元大台灣50",
+      "type": "etf",
+      "category": "市值型龍頭 ETF",
+      "issuer": "元大投信",
+      "current_price": 194.5,
+      "change_pct": 0.85,
+      "peak_price": 205.0,
+      "ma_60": 190.0,
+      "ma_120": 182.0,
+      "beta": 1.2,
+      "tech_ratio": 72,
+      "official_url": "https://www.yuantafunds.com/fund/intro/0050",
+      "query_url": "https://www.twse.com.tw/",
+      "evaluation": {
+        "dd_pct": 5.12,
+        "bias_60_pct": 2.37,
+        "bias_120_pct": 6.87,
+        "model_a": {
+          "status": "昂貴價",
+          "tag": "🔴 昂貴價 (追高風險大)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "expensive",
+          "tag": "🔴 昂貴過熱",
+          "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 16.36,
+        "target_price": 226.33,
+        "profit_per_100k": 16364.0
+      }
+    },
+    {
+      "id": "ETF_0052",
+      "code": "0052",
+      "name": "富邦科技",
+      "type": "etf",
+      "category": "純科技龍頭 ETF",
+      "issuer": "富邦投信",
+      "current_price": 192.3,
+      "change_pct": 1.45,
+      "peak_price": 210.0,
+      "ma_60": 188.0,
+      "ma_120": 179.0,
+      "beta": 1.8,
+      "tech_ratio": 98,
+      "official_url": "https://www.fubon.com/asset-management/fund/0052",
+      "query_url": "https://www.twse.com.tw/",
+      "evaluation": {
+        "dd_pct": 8.43,
+        "bias_60_pct": 2.29,
+        "bias_120_pct": 7.43,
+        "model_a": {
+          "status": "昂貴價",
+          "tag": "🔴 昂貴價 (追高風險大)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "expensive",
+          "tag": "🔴 昂貴過熱",
+          "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 24.55,
+        "target_price": 239.5,
+        "profit_per_100k": 24545.0
+      }
+    },
+    {
+      "id": "ETF_00881",
+      "code": "00881",
+      "name": "國泰台灣5G+",
+      "type": "etf",
+      "category": "通訊半導體 ETF",
+      "issuer": "國泰投信",
+      "current_price": 26.4,
+      "change_pct": 0.75,
+      "peak_price": 28.8,
+      "ma_60": 25.8,
+      "ma_120": 24.5,
+      "beta": 1.6,
+      "tech_ratio": 92,
+      "official_url": "https://www.cathaysite.com.tw/funds/detail/00881",
+      "query_url": "https://www.twse.com.tw/",
+      "evaluation": {
+        "dd_pct": 8.33,
+        "bias_60_pct": 2.33,
+        "bias_120_pct": 7.76,
+        "model_a": {
+          "status": "昂貴價",
+          "tag": "🔴 昂貴價 (追高風險大)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "expensive",
+          "tag": "🔴 昂貴過熱",
+          "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 21.82,
+        "target_price": 32.16,
+        "profit_per_100k": 21818.0
+      }
+    },
+    {
+      "id": "ETF_00935",
+      "code": "00935",
+      "name": "野村臺灣新科技50",
+      "type": "etf",
+      "category": "創新科技50 ETF",
+      "issuer": "野村投信",
+      "current_price": 23.15,
+      "change_pct": 1.1,
+      "peak_price": 25.2,
+      "ma_60": 22.6,
+      "ma_120": 21.5,
+      "beta": 1.6,
+      "tech_ratio": 90,
+      "official_url": "https://www.nomuramt.com.tw/",
+      "query_url": "https://www.twse.com.tw/",
+      "evaluation": {
+        "dd_pct": 8.13,
+        "bias_60_pct": 2.43,
+        "bias_120_pct": 7.67,
+        "model_a": {
+          "status": "昂貴價",
+          "tag": "🔴 昂貴價 (追高風險大)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "expensive",
+          "tag": "🔴 昂貴過熱",
+          "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 21.82,
+        "target_price": 28.2,
+        "profit_per_100k": 21818.0
+      }
+    },
+    {
+      "id": "ETF_00941",
+      "code": "00941",
+      "name": "中信上游半導體",
+      "type": "etf",
+      "category": "關鍵半導體材料設備 ETF",
+      "issuer": "中國信託投信",
+      "current_price": 16.25,
+      "change_pct": -0.3,
+      "peak_price": 18.5,
+      "ma_60": 16.8,
+      "ma_120": 17.2,
+      "beta": 1.7,
+      "tech_ratio": 95,
+      "official_url": "https://www.ctbcinvestments.com/",
+      "query_url": "https://www.twse.com.tw/",
+      "evaluation": {
+        "dd_pct": 12.16,
+        "bias_60_pct": -3.27,
+        "bias_120_pct": -5.52,
+        "model_a": {
+          "status": "合理偏高",
+          "tag": "🟡 常態整理區間"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 23.18,
+        "target_price": 20.02,
+        "profit_per_100k": 23182.0
+      }
+    },
+    {
+      "id": "FUND_ALZTWTC",
+      "code": "ALZTWTC",
+      "name": "安聯台灣科技基金",
+      "type": "fund",
+      "category": "高科技佔比共同基金 (科技佔比 > 85%)",
+      "issuer": "安聯投信 (蕭惠中)",
+      "current_price": 238.52,
+      "change_pct": 1.6,
+      "peak_price": 265.0,
+      "ma_60": 232.0,
+      "ma_120": 220.0,
+      "beta": 1.8,
+      "tech_ratio": 88,
+      "official_url": "https://tw.allianzgi.com/zh-tw/our-funds/funds/list/allianz-global-investors-taiwan-technology-fund-twd",
+      "query_url": "https://www.fundrich.com.tw/fund/009033.html",
+      "evaluation": {
+        "dd_pct": 9.99,
+        "bias_60_pct": 2.81,
+        "bias_120_pct": 8.42,
+        "model_a": {
+          "status": "昂貴價",
+          "tag": "🔴 昂貴價 (追高風險大)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "expensive",
+          "tag": "🔴 昂貴過熱",
+          "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 24.55,
+        "target_price": 297.07,
+        "profit_per_100k": 24545.0
+      }
+    },
+    {
+      "id": "FUND_UPPEN",
+      "code": "UPPEN",
+      "name": "統一奔騰基金",
+      "type": "fund",
+      "category": "高科技佔比共同基金 (科技佔比 > 90%)",
+      "issuer": "統一投信 (陳釧瑤)",
+      "current_price": 225.18,
+      "change_pct": 1.85,
+      "peak_price": 252.0,
+      "ma_60": 220.0,
+      "ma_120": 208.0,
+      "beta": 1.8,
+      "tech_ratio": 92,
+      "official_url": "https://www.ezmoney.com.tw/Fund/FundDetail?fundId=002002",
+      "query_url": "https://www.fundrich.com.tw/fund/005002.html",
+      "evaluation": {
+        "dd_pct": 10.64,
+        "bias_60_pct": 2.35,
+        "bias_120_pct": 8.26,
+        "model_a": {
+          "status": "合理偏高",
+          "tag": "🟡 常態整理區間"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 24.55,
+        "target_price": 280.45,
+        "profit_per_100k": 24545.0
+      }
+    },
+    {
+      "id": "FUND_UPBLKH",
+      "code": "UPBLKH",
+      "name": "統一黑馬基金",
+      "type": "fund",
+      "category": "高科技佔比共同基金 (科技佔比 > 75%)",
+      "issuer": "統一投信 (文毅尤)",
+      "current_price": 186.5,
+      "change_pct": 0.95,
+      "peak_price": 220.0,
+      "ma_60": 185.0,
+      "ma_120": 178.0,
+      "beta": 1.6,
+      "tech_ratio": 78,
+      "official_url": "https://www.ezmoney.com.tw/Fund/FundDetail?fundId=002001",
+      "query_url": "https://www.fundrich.com.tw/fund/005001.html",
+      "evaluation": {
+        "dd_pct": 15.23,
+        "bias_60_pct": 0.81,
+        "bias_120_pct": 4.78,
+        "model_a": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (健康回測)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 21.82,
+        "target_price": 227.19,
+        "profit_per_100k": 21818.0
+      }
+    },
+    {
+      "id": "FUND_NMHT",
+      "code": "NMHT",
+      "name": "野村高科技基金",
+      "type": "fund",
+      "category": "高科技佔比共同基金 (科技佔比 > 85%)",
+      "issuer": "野村投信 (謝芝朕)",
+      "current_price": 162.8,
+      "change_pct": 1.3,
+      "peak_price": 185.0,
+      "ma_60": 158.0,
+      "ma_120": 150.0,
+      "beta": 1.8,
+      "tech_ratio": 86,
+      "official_url": "https://www.nomuramt.com.tw/",
+      "query_url": "https://www.fundrich.com.tw/fund/003004.html",
+      "evaluation": {
+        "dd_pct": 12.0,
+        "bias_60_pct": 3.04,
+        "bias_120_pct": 8.53,
+        "model_a": {
+          "status": "合理偏高",
+          "tag": "🟡 常態整理區間"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 24.55,
+        "target_price": 202.76,
+        "profit_per_100k": 24545.0
+      }
+    },
+    {
+      "id": "FUND_TSGCN",
+      "code": "TSGCN",
+      "name": "台新中國通基金",
+      "type": "fund",
+      "category": "高科技持股型基金 (科技佔比 > 70%)",
+      "issuer": "台新投信 (魏永祥)",
+      "current_price": 98.4,
+      "change_pct": 0.55,
+      "peak_price": 115.0,
+      "ma_60": 99.0,
+      "ma_120": 95.0,
+      "beta": 1.6,
+      "tech_ratio": 73,
+      "official_url": "https://www.tsit.com.tw/",
+      "query_url": "https://www.fundrich.com.tw/fund/012001.html",
+      "evaluation": {
+        "dd_pct": 14.43,
+        "bias_60_pct": -0.61,
+        "bias_120_pct": 3.58,
+        "model_a": {
+          "status": "合理偏高",
+          "tag": "🟡 常態整理區間"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 21.82,
+        "target_price": 119.87,
+        "profit_per_100k": 21818.0
+      }
+    }
+  ]
+}

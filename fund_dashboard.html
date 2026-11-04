@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台灣基金 ‧ 主動/被動 ETF 價格位階與大盤情境決策系統</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased p-3 sm:p-6 font-sans">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Header Section with Last Updated Timestamp & Sync Button -->
+    <header class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <div class="flex flex-wrap items-center gap-2 mb-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              每日淨值與位階即時監控
+            </span>
+            <!-- PROMINENT LAST UPDATED DATE AND TIME BADGE -->
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
+              <span>📅 最後資料更新時間：</span>
+              <span id="lastUpdatedBadge" class="font-mono text-blue-800 font-extrabold text-sm">2026-11-04 11:36:22</span>
+            </span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              <span>📈 基準大盤：44,000 點</span>
+            </span>
+          </div>
+
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+            台灣基金 ‧ 主動/被動 ETF 價格位階判定與大盤情境模擬系統
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1">
+            包含【甜甜價／合理價／昂貴價】自動檢測、大盤指數 (50,000~55,000點) 連動目標價預估、累積型複利與月配息現金流試算
+          </p>
+        </div>
+
+        <!-- Sync Button & Platform Links -->
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <button onclick="refreshData()" id="refreshBtn" 
+                  class="px-3.5 py-2.5 rounded-xl border border-blue-600 bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-1.5 transition-all shadow-xs active:scale-95">
+            <span id="refreshIcon">🔄</span>
+            <span id="refreshText">立即同步最新淨值</span>
+          </button>
+          <a href="https://www.twse.com.tw/" target="_blank" rel="noopener noreferrer" 
+             class="px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:border-blue-500 text-slate-700 flex items-center gap-1.5 transition-colors shadow-2xs">
+            <span>🏛️ 證交所官網</span>
+          </a>
+          <a href="https://www.fundclear.com.tw/" target="_blank" rel="noopener noreferrer" 
+             class="px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:border-blue-500 text-slate-700 flex items-center gap-1.5 transition-colors shadow-2xs">
+            <span>📊 基金資訊觀測站</span>
+          </a>
+          <a href="https://www.fundrich.com.tw/" target="_blank" rel="noopener noreferrer" 
+             class="px-3 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-700 flex items-center gap-1.5 transition-colors shadow-2xs font-semibold">
+            <span>🛒 基富通 (0手續費)</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- NEW MODULE 2: 大盤指數聯動與目標價預估模擬器 -->
+    <div class="bg-gradient-to-r from-indigo-900 via-slate-900 to-blue-900 text-white rounded-2xl p-5 sm:p-6 shadow-md space-y-5">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-indigo-700/60 pb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-500/30 text-indigo-200 border border-indigo-400/40">
+              🚀 模組 2：大盤情境模擬
+            </span>
+            <h2 class="text-lg sm:text-xl font-extrabold tracking-wide">
+              大盤指數聯動與目標價預估模擬器
+            </h2>
+          </div>
+          <p class="text-xs text-indigo-200 mt-1">
+            依據各標的 Beta 彈性係數，即時推算大盤衝上 50,000 ~ 55,000 點時之預估漲幅、目標價格與投資獲利金額
+          </p>
+        </div>
+        <div class="flex items-center gap-3 text-xs bg-indigo-950/60 px-3 py-2 rounded-xl border border-indigo-700/50">
+          <span class="text-indigo-300">基準大盤指數：</span>
+          <input type="number" id="baseIndexInput" value="44000" step="500" 
+                 class="w-24 bg-slate-800 text-white border border-indigo-500 rounded px-2 py-1 font-mono font-bold text-center">
+          <span class="text-indigo-300">點</span>
+        </div>
+      </div>
+
+      <!-- Controls for Target Index & Holding Mode -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+        <!-- Target Index Selector -->
+        <div class="lg:col-span-7 space-y-3">
+          <div class="flex items-center justify-between text-xs sm:text-sm">
+            <span class="text-indigo-200 font-semibold">目標大盤指數設定：</span>
+            <div class="flex items-center gap-2">
+              <span id="targetIndexDisplay" class="font-mono text-xl sm:text-2xl font-black text-amber-400">50,000</span>
+              <span class="text-xs text-amber-200 font-bold">點</span>
+              <span id="indexGainBadge" class="ml-2 px-2 py-0.5 rounded text-xs font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono">
+                大盤預估 +13.64%
+              </span>
+            </div>
+          </div>
+
+          <!-- Quick Preset Buttons -->
+          <div class="flex flex-wrap gap-2">
+            <button onclick="setTargetIndex(50000)" id="idxBtn50000" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-amber-400 bg-amber-400 text-slate-900 shadow-sm">50,000 點</button>
+            <button onclick="setTargetIndex(51000)" id="idxBtn51000" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-indigo-600 bg-indigo-950/60 text-indigo-200 hover:border-amber-400">51,000 點</button>
+            <button onclick="setTargetIndex(52000)" id="idxBtn52000" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-indigo-600 bg-indigo-950/60 text-indigo-200 hover:border-amber-400">52,000 點</button>
+            <button onclick="setTargetIndex(55000)" id="idxBtn55000" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-indigo-600 bg-indigo-950/60 text-indigo-200 hover:border-amber-400">55,000 點</button>
+            <button onclick="setTargetIndex(60000)" id="idxBtn60000" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-indigo-600 bg-indigo-950/60 text-indigo-200 hover:border-amber-400">60,000 點 🚀</button>
+          </div>
+
+          <!-- Range Slider -->
+          <input type="range" id="targetIndexSlider" min="44000" max="65000" step="500" value="50000"
+                 class="w-full accent-amber-400 cursor-pointer h-2 bg-indigo-950 rounded-lg">
+        </div>
+
+        <!-- Simulation Capital / Lots Mode -->
+        <div class="lg:col-span-5 bg-indigo-950/80 border border-indigo-700/60 p-3.5 rounded-xl space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-indigo-200 font-semibold">獲利試算條件：</span>
+            <div class="inline-flex rounded-lg p-0.5 bg-slate-900 border border-indigo-800 text-[11px]">
+              <button onclick="setSimMode('capital')" id="simModeCapBtn" class="px-2.5 py-1 rounded-md font-bold bg-blue-600 text-white">依投資本金 (萬)</button>
+              <button onclick="setSimMode('lots')" id="simModeLotsBtn" class="px-2.5 py-1 rounded-md font-semibold text-slate-300">依持有張數 (張)</button>
+            </div>
+          </div>
+
+          <div id="simCapitalBox" class="flex items-center justify-between">
+            <span class="text-xs text-indigo-300">單檔標的投入本金：</span>
+            <div class="flex items-center gap-1.5">
+              <input type="number" id="simCapitalInput" value="100" min="10" max="2000" step="10"
+                     class="w-20 bg-slate-800 text-white border border-indigo-500 rounded px-2 py-1 font-mono font-bold text-right text-sm">
+              <span class="text-xs font-bold text-amber-300">萬元 NTD</span>
+            </div>
+          </div>
+
+          <div id="simLotsBox" class="hidden flex items-center justify-between">
+            <span class="text-xs text-indigo-300">單檔標的持有張數：</span>
+            <div class="flex items-center gap-1.5">
+              <input type="number" id="simLotsInput" value="10" min="1" max="500" step="1"
+                     class="w-20 bg-slate-800 text-white border border-indigo-500 rounded px-2 py-1 font-mono font-bold text-right text-sm">
+              <span class="text-xs font-bold text-amber-300">張 (1,000股/張)</span>
+            </div>
+          </div>
+
+          <div class="text-[11px] text-indigo-300/80 pt-1 border-t border-indigo-800/60 flex items-center justify-between">
+            <span>公式：標的漲幅 = 大盤漲幅 × Beta</span>
+            <span class="text-amber-300">💡 點選下方任一標的看專屬情境</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Highlights for Target Scenario -->
+      <div id="scenarioTopGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+        <!-- Rendered by JS: Top 4 high explosive targets in this scenario -->
+      </div>
+    </div>
+
+    <!-- MODULE 1: 價格位階自動判定與篩選過濾器 (甜甜價／合理價／昂貴價) -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-sm space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              🏷️ 模組 1：價格位階自動判定
+            </span>
+            <h2 class="text-base sm:text-lg font-bold text-slate-900">
+              價格位階檢測與安全邊際導航 (甜甜價 ‧ 合理價 ‧ 昂貴價)
+            </h2>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">
+            依據歷史波段高點 (Peak) 計算回檔幅度，並檢測是否跌破發行面額，提供進場安全邊際指引
+          </p>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-slate-500">標準：</span>
+          <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">🟢 甜甜價 (回檔≥25%或破發)</span>
+          <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold border border-amber-200">🟡 合理價 (回檔10%~25%)</span>
+          <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-bold border border-rose-200">🔴 昂貴價 (回檔&lt;10%)</span>
+        </div>
+      </div>
+
+      <!-- Filters: Instrument Type & Price Valuation -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <!-- Instrument Type Filter -->
+        <div class="md:col-span-7 space-y-1.5">
+          <label class="text-xs font-bold text-slate-600">標的類別篩選：</label>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="setInstFilter('all')" id="instFilterAll" class="text-xs px-3 py-1.5 rounded-xl border border-blue-600 bg-blue-50 text-blue-600 font-bold">全部標的 (<span id="cntAll">0</span>)</button>
+            <button onclick="setInstFilter('fund')" id="instFilterFund" class="text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-400">🏢 共同基金 (<span id="cntFund">0</span>)</button>
+            <button onclick="setInstFilter('act')" id="instFilterAct" class="text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-400">🚀 主動式 ETF (<span id="cntAct">0</span>)</button>
+            <button onclick="setInstFilter('etf')" id="instFilterEtf" class="text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-400">📊 核心被動/高股息 ETF (<span id="cntEtf">0</span>)</button>
+          </div>
+        </div>
+
+        <!-- Valuation Level Filter -->
+        <div class="md:col-span-5 space-y-1.5">
+          <label class="text-xs font-bold text-slate-600">價格位階篩選：</label>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="setValFilter('all')" id="valFilterAll" class="text-xs px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-white font-bold">全部位階</button>
+            <button onclick="setValFilter('sweet')" id="valFilterSweet" class="text-xs px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-700 font-semibold hover:bg-emerald-100">🟢 甜甜價 (<span id="cntSweet">0</span>)</button>
+            <button onclick="setValFilter('fair')" id="valFilterFair" class="text-xs px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-700 font-semibold hover:bg-amber-100">🟡 合理價 (<span id="cntFair">0</span>)</button>
+            <button onclick="setValFilter('expensive')" id="valFilterExp" class="text-xs px-3 py-1.5 rounded-xl border border-rose-300 bg-rose-50 text-rose-700 font-semibold hover:bg-rose-100">🔴 昂貴價 (<span id="cntExp">0</span>)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CORE FEATURE: 核心 11 檔監控標的「價格位階與大盤情境」深度檢視卡片區 -->
+    <div class="space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <h2 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-blue-600"></span>
+          核心監控標的 ‧ 價格位階與大盤情境模擬卡片
+        </h2>
+        <span class="text-xs text-slate-500">點擊任一卡片可開啟「專屬 Beta 微調與情境矩陣」</span>
+      </div>
+
+      <div id="instrumentsCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Rendered dynamically via JS -->
+      </div>
+    </div>
+
+    <!-- COMPLETE RANKING TABLE WITH VALUATION THRESHOLDS & SCENARIO TARGETS -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+            全標的大盤情境聯動 ‧ 目標價與位階門檻綜合報表
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">
+            依據目前設定之目標大盤指數 (<span id="tableTargetIdxText" class="font-bold text-blue-600">50,000</span> 點)，展示各標的目標價、預估獲利與位階門檻
+          </p>
+        </div>
+        <div class="text-xs text-slate-500">共 <span id="displayCount" class="font-bold text-slate-900">0</span> 檔標的</div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200 text-slate-500 bg-slate-50/80">
+              <th class="py-3 px-3 font-semibold">代碼 / 名稱</th>
+              <th class="py-3 px-3 font-semibold text-center">類型</th>
+              <th class="py-3 px-3 font-semibold text-right">目前淨值</th>
+              <th class="py-3 px-3 font-semibold text-right">歷史高點</th>
+              <th class="py-3 px-3 font-semibold text-right">回檔幅</th>
+              <th class="py-3 px-3 font-semibold text-center">價格位階</th>
+              <th class="py-3 px-3 font-semibold text-center">位階門檻 (甜甜 / 合理 / 昂貴)</th>
+              <th class="py-3 px-3 font-semibold text-center">Beta</th>
+              <th class="py-3 px-3 font-semibold text-right text-indigo-700">目標價 (<span class="colTargetIdx">50,000</span>)</th>
+              <th class="py-3 px-3 font-semibold text-right text-emerald-700">預估漲幅</th>
+              <th class="py-3 px-3 font-semibold text-right font-bold text-blue-700">預估獲利 (NTD)</th>
+              <th class="py-3 px-3 font-semibold text-center">詳情 / 官網</th>
+            </tr>
+          </thead>
+          <tbody id="scenarioTableBody" class="divide-y divide-slate-100 font-mono">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MODAL: 標的深度分析與專屬情境試算彈窗 -->
+    <div id="targetDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full p-6 space-y-5 max-h-[92vh] overflow-y-auto">
+        <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span id="modalCodeBadge" class="px-2 py-0.5 rounded text-xs font-mono font-bold bg-slate-100 text-slate-800"></span>
+              <span id="modalTypeBadge" class="px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200"></span>
+              <span id="modalValuationBadge"></span>
+            </div>
+            <h3 id="modalName" class="text-xl font-extrabold text-slate-900 mt-1.5"></h3>
+            <p id="modalIssuer" class="text-xs text-slate-500"></p>
+          </div>
+          <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold flex items-center justify-center text-sm">✕</button>
+        </div>
+
+        <!-- Valuation Details -->
+        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-600">🏷️ 價格位階與安全邊際判定</span>
+            <span id="modalDrawdownText" class="text-xs font-bold text-rose-600"></span>
+          </div>
+
+          <!-- Visual Position Gauge -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px] text-slate-500 font-mono">
+              <span>🟢 甜甜價 (≤ <span id="modalSweetPrice"></span>)</span>
+              <span>🟡 合理價 (<span id="modalFairPrice"></span>)</span>
+              <span>🔴 昂貴價 (&gt; <span id="modalExpPrice"></span>)</span>
+            </div>
+            <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden flex">
+              <div class="bg-emerald-500 h-full" style="width: 33.3%"></div>
+              <div class="bg-amber-400 h-full" style="width: 33.3%"></div>
+              <div class="bg-rose-500 h-full" style="width: 33.4%"></div>
+            </div>
+            <div class="flex justify-between text-[10px] text-slate-400 pt-0.5">
+              <span>發行價：<span id="modalIssuePrice"></span></span>
+              <span>目前淨值：<b id="modalCurrentNav" class="text-slate-900 text-xs"></b></span>
+              <span>歷史高點：<span id="modalPeakNav"></span></span>
+            </div>
+          </div>
+          <div id="modalValReason" class="text-xs text-slate-600 bg-white p-2.5 rounded-xl border border-slate-200"></div>
+        </div>
+
+        <!-- Custom Beta Tuning & Scenario Matrix -->
+        <div class="space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h4 class="text-sm font-bold text-slate-900">🚀 大盤指數連動情境矩陣</h4>
+              <p class="text-xs text-slate-500">基準大盤 44,000 點推算各階段獲利</p>
+            </div>
+            <div class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 text-xs">
+              <span class="text-slate-600">自訂 Beta：</span>
+              <input type="number" id="modalBetaInput" step="0.1" min="0.2" max="3.0"
+                     class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-center font-bold text-blue-600">
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden font-mono">
+              <thead class="bg-slate-100 text-slate-600">
+                <tr>
+                  <th class="py-2.5 px-3">大盤目標點數</th>
+                  <th class="py-2.5 px-3 text-right">大盤漲幅</th>
+                  <th class="py-2.5 px-3 text-right">標的預估漲幅</th>
+                  <th class="py-2.5 px-3 text-right">預估目標價格</th>
+                  <th class="py-2.5 px-3 text-right text-blue-600 font-bold">預估獲利 (依<span id="modalSimModeText">100萬</span>)</th>
+                </tr>
+              </thead>
+              <tbody id="modalScenarioMatrixBody" class="divide-y divide-slate-100 bg-white">
+                <!-- Dynamically generated for 44k, 50k, 51k, 52k, 55k, 60k -->
+              </tbody>
+            </table>
+          </div>
+
+          <div id="modalCoveredCallWarning" class="hidden bg-amber-50 border border-amber-300 text-amber-800 text-xs p-3 rounded-xl">
+            ⚠️ <b>Covered Call 策略提示</b>：此標的採取掩護性買權策略，上漲利益部分被出售買權封頂（彈性係數約 0.5），在大盤狂飆時資本利得會受限，但具備極高每月配息回饋（年化約 9.5%）。
+          </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-3 text-xs">
+          <div class="text-slate-500">經理人：<span id="modalManager" class="font-bold text-slate-700"></span></div>
+          <div class="flex items-center gap-2">
+            <a id="modalOfficialLink" href="#" target="_blank" rel="noopener noreferrer"
+               class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-colors">
+              前往官方發行頁面 ↗
+            </a>
+            <a id="modalQueryLink" href="#" target="_blank" rel="noopener noreferrer"
+               class="px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:border-slate-400 text-slate-700 font-medium transition-colors">
+              觀測站查歷史淨值 ↗
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // System Data & Monitored Target List (11 Core Targets + Global Top Picks)
+    let lastUpdatedTimestamp = "2026-11-04 11:36:22";
+    let baseMarketIndex = 44000;
+    let currentTargetIndex = 50000;
+    let currentSimMode = "capital"; // "capital" or "lots"
+    let currentSimCapital = 1000000; // 100萬 NTD
+    let currentSimLots = 10; // 10 張
+
+    let currentInstFilter = "all";
+    let currentValFilter = "all";
+    let selectedFundForModal = null;
+
+    // Comprehensive Monitored Targets Data
+    let monitoredList = [
+      {
+        id: "TW01",
+        code: "ALZTWTC",
+        name: "安聯台灣科技基金",
+        issuer: "安聯投信",
+        type: "共同基金",
+        instrument_type: "fund",
+        category: "台股科技",
+        manager: "蕭惠中 / 協管 李侃奇",
+        currency: "TWD",
+        nav: 238.52,
+        nav_date: "2026-11-04",
+        peak_nav: 265.00,
+        issue_price: 10.00,
+        beta: 1.80,
+        beta_note: "純科技旗艦，多頭爆發力極強",
+        is_covered_call: false,
+        return_1m: 3.42,
+        return_3m: 11.85,
+        return_1y: 32.57,
+        cagr_3y: 36.80,
+        share_type: "累積型",
+        div_yield: 0.0,
+        official_url: "https://tw.allianzgi.com/zh-tw/our-funds/funds/list/allianz-global-investors-taiwan-technology-fund-twd",
+        query_url: "https://www.fundrich.com.tw/fund/009033.html"
+      },
+      {
+        id: "TW02",
+        code: "UPPEN",
+        name: "統一奔騰基金",
+        issuer: "統一投信",
+        type: "共同基金",
+        instrument_type: "fund",
+        category: "台股科技",
+        manager: "陳釧瑤",
+        currency: "TWD",
+        nav: 225.18,
+        nav_date: "2026-11-04",
+        peak_nav: 252.00,
+        issue_price: 10.00,
+        beta: 1.80,
+        beta_note: "台股科技黑馬，超額報酬彈性高",
+        is_covered_call: false,
+        return_1m: 2.95,
+        return_3m: 10.20,
+        return_1y: 28.72,
+        cagr_3y: 34.20,
+        share_type: "累積型",
+        div_yield: 0.0,
+        official_url: "https://www.ezmoney.com.tw/Fund/FundDetail?fundId=002002",
+        query_url: "https://www.fundrich.com.tw/fund/005002.html"
+      },
+      {
+        id: "TW03",
+        code: "UPBLKH",
+        name: "統一黑馬基金",
+        issuer: "統一投信",
+        type: "共同基金",
+        instrument_type: "fund",
+        category: "台股中小型",
+        manager: "文毅尤",
+        currency: "TWD",
+        nav: 186.50,
+        nav_date: "2026-11-04",
+        peak_nav: 220.00,
+        issue_price: 10.00,
+        beta: 1.60,
+        beta_note: "靈活選股中小型成長，具高攻守彈性",
+        is_covered_call: false,
+        return_1m: 2.15,
+        return_3m: 8.75,
+        return_1y: 25.40,
+        cagr_3y: 28.60,
+        share_type: "累積型",
+        div_yield: 0.0,
+        official_url: "https://www.ezmoney.com.tw/Fund/FundDetail?fundId=002001",
+        query_url: "https://www.fundrich.com.tw/fund/005001.html"
+      },
+      {
+        id: "ACT01",
+        code: "00992A",
+        name: "00992A 主動群益台灣科技創新",
+        issuer: "群益投信",
+        type: "主動式ETF",
+        instrument_type: "act",
+        category: "主動科技ETF",
+        manager: "群益主動投資團隊",
+        currency: "TWD",
+        nav: 17.85,
+        nav_date: "2026-11-04",
+        peak_nav: 20.50,
+        issue_price: 15.00,
+        beta: 1.80,
+        beta_note: "主動選股純科技高彈性，聚焦AI半導體",
+        is_covered_call: false,
+        return_1m: 3.20,
+        return_3m: 10.80,
+        return_1y: 29.50,
+        cagr_3y: 26.50,
+        share_type: "累積型",
+        div_yield: 0.0,
+        official_url: "https://www.capitalfund.com.tw/",
+        query_url: "https://www.twse.com.tw/"
+      },
+      {
+        id: "ACT02",
+        code: "00981A",
+        name: "00981A 主動統一台股增長",
+        issuer: "統一投信",
+        type: "主動式ETF",
+        instrument_type: "act",
+        category: "主動權值成長",
+        manager: "統一投信主動管理團隊",
+        currency: "TWD",
+        nav: 16.20,
+        nav_date: "2026-11-04",
+        peak_nav: 18.60,
+        issue_price: 15.00,
+        beta: 1.30,
+        beta_note: "權值成長型，追隨多頭擴大漲幅",
+        is_covered_call: false,
+        return_1m: 2.45,
+        return_3m: 8.60,
+        return_1y: 23.80,
+        cagr_3y: 22.10,
+        share_type: "累積型",
+        div_yield: 0.0,
+        official_url: "https://www.ezmoney.com.tw/",
+        query_url: "https://www.twse.com.tw/"
+      },
+      {
+        id: "ACT03",
+        code: "00406A",
+        name: "00406A 主動中信台灣收益",
+        issuer: "中國信託投信",
+        type: "主動式ETF",
+        instrument_type: "act",
+        category: "Covered Call 高月配",
+        manager: "中信投信量化衍生品團隊",
+        currency: "TWD",
+        nav: 14.65,
+        nav_date: "2026-11-04",
+        peak_nav: 15.80,
+        issue_price: 15.00,
+        beta: 0.50,
+        beta_note: "Covered Call 掩護性買權策略，上漲獲利受限但月配息高",
+        is_covered_call: true,
+        return_1m: 0.85,
+        return_3m: 3.40,
+        return_1y: 14.20,
+        cagr_3y: 12.80,
+        share_type: "配息型",
+        div_yield: 9.50,
+        official_url: "https://www.ctbcinvestments.com/",
+        query_url: "https://www.twse.com.tw/"
+      },
+      {
+        id: "ACT04",
+        code: "00403A",
+        name: "00403A 主動統一升級50",
+        issuer: "統一投信",
+        type: "主動式ETF",
+        instrument_type: "act",
+        category: "主動權值龍頭",
+        manager: "統一投信主動管理團隊",
+        currency: "TWD",
+        nav: 16.80,
+        nav_date: "2026-11-04",
+        peak_nav: 19.20,
+        issue_price: 15.00,
+        beta: 1.30,
+        beta_note: "升級版權值50，主動超越大盤",
+        is_covered_call: false,
+        return_1m: 2.30,
+        return_3m: 8.10,
+        return_1y: 22.90,
+        cagr_3y: 21.50,
+        share_type: "累積型",
+        div_yield: 0.0,
+        official_url: "https://www.ezmoney.com.tw/",
+        query_url: "https://www.twse.com.tw/"
+      },
+      {
+        id: "ETF01",
+        code: "0050",
+        name: "0050 元大台灣50",
+        issuer: "元大投信",
+        type: "被動指數ETF",
+        instrument_type: "etf",
+        category: "被動市值型ETF",
+        manager: "元大投信指數團隊",
+        currency: "TWD",
+        nav: 194.50,
+        nav_date: "2026-11-04",
+        peak_nav: 205.00,
+        issue_price: 36.98,
+        beta: 1.00,
+        beta_note: "大盤市值基準指數，完全貼近加權指數走勢",
+        is_covered_call: false,
+        return_1m: 1.85,
+        return_3m: 6.80,
+        return_1y: 21.30,
+        cagr_3y: 20.50,
+        share_type: "配息型",
+        div_yield: 3.80,
+        official_url: "https://www.yuantafunds.com/fund/intro/0050",
+        query_url: "https://www.twse.com.tw/"
+      },
+      {
+        id: "ETF02",
+        code: "0056",
+        name: "0056 元大高股息",
+        issuer: "元大投信",
+        type: "高股息ETF",
+        instrument_type: "etf",
+        category: "高股息ETF",
+        manager: "元大投信指數團隊",
+        currency: "TWD",
+        nav: 37.80,
+        nav_date: "2026-11-04",
+        peak_nav: 42.50,
+        issue_price: 25.00,
+        beta: 0.75,
+        beta_note: "老牌高股息，穩健防禦特性，彈性較低",
+        is_covered_call: false,
+        return_1m: 1.10,
+        return_3m: 4.50,
+        return_1y: 16.20,
+        cagr_3y: 17.80,
+        share_type: "配息型",
+        div_yield: 7.50,
+        official_url: "https://www.yuantafunds.com/fund/intro/0056",
+        query_url: "https://www.twse.com.tw/"
+      },
+      {
+        id: "ETF03",
+        code: "00878",
+        name: "00878 國泰永續高股息",
+        issuer: "國泰投信",
+        type: "高股息ETF",
+        instrument_type: "etf",
+        category: "ESG高股息ETF",
+        manager: "游日傑",
+        currency: "TWD",
+        nav: 22.35,
+        nav_date: "2026-11-04",
+        peak_nav: 24.20,
+        issue_price: 15.00,
+        beta: 0.70,
+        beta_note: "ESG低波動高股息，抗跌防禦但衝刺彈性較緩",
+        is_covered_call: false,
+        return_1m: 0.95,
+        return_3m: 4.20,
+        return_1y: 15.80,
+        cagr_3y: 16.90,
+        share_type: "配息型",
+        div_yield: 8.20,
+        official_url: "https://www.cathaysite.com.tw/funds/detail/00878",
+        query_url: "https://www.twse.com.tw/"
+      },
+      {
+        id: "ETF04",
+        code: "00919",
+        name: "00919 群益台灣精選高息",
+        issuer: "群益投信",
+        type: "高股息ETF",
+        instrument_type: "etf",
+        category: "精選高股息ETF",
+        manager: "謝明志",
+        currency: "TWD",
+        nav: 23.60,
+        nav_date: "2026-11-04",
+        peak_nav: 27.00,
+        issue_price: 15.00,
+        beta: 0.75,
+        beta_note: "宣告高息股配置，具備強大現金流但大盤彈性較平穩",
+        is_covered_call: false,
+        return_1m: 1.20,
+        return_3m: 5.10,
+        return_1y: 18.20,
+        cagr_3y: 19.40,
+        share_type: "配息型",
+        div_yield: 9.80,
+        official_url: "https://www.capitalfund.com.tw/ETF/detail/00919",
+        query_url: "https://www.twse.com.tw/"
+      },
+      {
+        id: "DV01",
+        code: "YTDIV",
+        name: "元大台灣高股息優質龍頭 (B配息)",
+        issuer: "元大投信",
+        type: "共同基金",
+        instrument_type: "fund",
+        category: "台股高股息月配",
+        manager: "黃玉枝",
+        currency: "TWD",
+        nav: 14.85,
+        nav_date: "2026-11-04",
+        peak_nav: 16.50,
+        issue_price: 10.00,
+        beta: 0.85,
+        beta_note: "台股月配旗艦，月月領息+年終紅利",
+        is_covered_call: false,
+        return_1m: 1.50,
+        return_3m: 6.20,
+        return_1y: 18.50,
+        cagr_3y: 21.20,
+        share_type: "配息型",
+        div_yield: 6.80,
+        official_url: "https://www.yuantafunds.com/fund/intro/1057",
+        query_url: "https://www.fundrich.com.tw/fund/001057.html"
+      }
+    ];
+
+    // Module 1 Logic: Price Valuation Assessment
+    function computeValuation(f) {
+      const nav = f.nav;
+      const peak = f.peak_nav || nav;
+      const issue = f.issue_price || 10.0;
+      const drawdown = peak > 0 ? (peak - nav) / peak : 0;
+      const drawdownPct = drawdown * 100;
+
+      const sweetThreshold = peak * 0.75;
+      const fairMin = peak * 0.75;
+      const fairMax = peak * 0.90;
+      const expensiveThreshold = peak * 0.90;
+
+      let status = "fair";
+      let tag = "🟡 合理價";
+      let badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
+      let reason = `自高點回檔 ${drawdownPct.toFixed(1)}% (常態整理區間 10%~25%)`;
+
+      if (nav <= issue || drawdownPct >= 25.0) {
+        status = "sweet";
+        tag = "🟢 甜甜價";
+        badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
+        reason = nav <= issue 
+          ? `目前淨值跌破發行面額 (${nav.toFixed(2)} ≤ ${issue.toFixed(2)})，安全邊際極佳` 
+          : `自高點回檔幅度達 ${drawdownPct.toFixed(1)}% (≥25%)，超跌甜蜜買點`;
+      } else if (drawdownPct < 10.0) {
+        status = "expensive";
+        tag = "🔴 昂貴價";
+        badgeClass = "bg-rose-100 text-rose-800 border-rose-300";
+        reason = `自高點回檔僅 ${drawdownPct.toFixed(1)}% (<10%)，逼近歷史新高、市場過熱區間`;
+      }
+
+      return {
+        status,
+        tag,
+        badgeClass,
+        drawdownPct,
+        sweetThreshold,
+        fairMin,
+        fairMax,
+        expensiveThreshold,
+        reason
+      };
+    }
+
+    // Module 2 Logic: Market Scenario Projection
+    function computeScenario(f, baseIdx, targetIdx) {
+      const idxGain = (targetIdx - baseIdx) / baseIdx;
+      const targetGain = idxGain * f.beta;
+      const targetPrice = f.nav * (1 + targetGain);
+
+      let estProfit = 0;
+      if (currentSimMode === "capital") {
+        estProfit = currentSimCapital * targetGain;
+      } else {
+        // Lots mode: 1 lot = 1,000 shares
+        const shares = currentSimLots * 1000;
+        estProfit = shares * (targetPrice - f.nav);
+      }
+
+      return {
+        idxGainPct: idxGain * 100,
+        targetGainPct: targetGain * 100,
+        targetPrice,
+        estProfit
+      };
+    }
+
+    // Interactive Handler Functions
+    function setTargetIndex(idx) {
+      currentTargetIndex = idx;
+      document.getElementById("targetIndexSlider").value = idx;
+      updateScenarioUI();
+      renderAll();
+    }
+
+    function setSimMode(mode) {
+      currentSimMode = mode;
+      const capBtn = document.getElementById("simModeCapBtn");
+      const lotsBtn = document.getElementById("simModeLotsBtn");
+      const capBox = document.getElementById("simCapitalBox");
+      const lotsBox = document.getElementById("simLotsBox");
+
+      if (mode === "capital") {
+        capBtn.className = "px-2.5 py-1 rounded-md font-bold bg-blue-600 text-white";
+        lotsBtn.className = "px-2.5 py-1 rounded-md font-semibold text-slate-300";
+        capBox.classList.remove("hidden");
+        lotsBox.classList.add("hidden");
+      } else {
+        lotsBtn.className = "px-2.5 py-1 rounded-md font-bold bg-blue-600 text-white";
+        capBtn.className = "px-2.5 py-1 rounded-md font-semibold text-slate-300";
+        lotsBox.classList.remove("hidden");
+        capBox.classList.add("hidden");
+      }
+      renderAll();
+    }
+
+    function setInstFilter(cat) {
+      currentInstFilter = cat;
+      const filters = ['All', 'Fund', 'Act', 'Etf'];
+      filters.forEach(f => {
+        const btn = document.getElementById(`instFilter${f}`);
+        if (`instFilter${f}`.toLowerCase().includes(cat)) {
+          btn.className = "text-xs px-3 py-1.5 rounded-xl border border-blue-600 bg-blue-50 text-blue-600 font-bold";
+        } else {
+          btn.className = "text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-400";
+        }
+      });
+      renderAll();
+    }
+
+    function setValFilter(val) {
+      currentValFilter = val;
+      const vals = [
+        { id: "valFilterAll", val: "all", active: "border-slate-700 bg-slate-800 text-white font-bold", idle: "border-slate-200 bg-slate-50 text-slate-700" },
+        { id: "valFilterSweet", val: "sweet", active: "border-emerald-500 bg-emerald-600 text-white font-bold", idle: "border-emerald-300 bg-emerald-50 text-emerald-700" },
+        { id: "valFilterFair", val: "fair", active: "border-amber-500 bg-amber-500 text-slate-900 font-bold", idle: "border-amber-300 bg-amber-50 text-amber-700" },
+        { id: "valFilterExp", val: "expensive", active: "border-rose-500 bg-rose-600 text-white font-bold", idle: "border-rose-300 bg-rose-50 text-rose-700" }
+      ];
+
+      vals.forEach(v => {
+        const btn = document.getElementById(v.id);
+        if (v.val === val) {
+          btn.className = `text-xs px-3 py-1.5 rounded-xl border ${v.active}`;
+        } else {
+          btn.className = `text-xs px-3 py-1.5 rounded-xl border ${v.idle}`;
+        }
+      });
+      renderAll();
+    }
+
+    function updateScenarioUI() {
+      document.getElementById("targetIndexDisplay").textContent = currentTargetIndex.toLocaleString();
+      document.getElementById("tableTargetIdxText").textContent = currentTargetIndex.toLocaleString();
+      document.querySelectorAll(".colTargetIdx").forEach(el => el.textContent = currentTargetIndex.toLocaleString());
+
+      const idxGain = ((currentTargetIndex - baseMarketIndex) / baseMarketIndex) * 100;
+      const gainBadge = document.getElementById("indexGainBadge");
+      gainBadge.textContent = `大盤預估 ${idxGain >= 0 ? '+' : ''}${idxGain.toFixed(2)}%`;
+
+      // Preset button active styling
+      [50000, 51000, 52000, 55000, 60000].forEach(p => {
+        const btn = document.getElementById(`idxBtn${p}`);
+        if (btn) {
+          if (p === currentTargetIndex) {
+            btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-amber-400 bg-amber-400 text-slate-900 shadow-sm";
+          } else {
+            btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-indigo-600 bg-indigo-950/60 text-indigo-200 hover:border-amber-400";
+          }
+        }
+      });
+    }
+
+    // Modal Handler
+    function openModal(fundId) {
+      const fund = monitoredList.find(f => f.id === fundId);
+      if (!fund) return;
+      selectedFundForModal = fund;
+
+      const val = computeValuation(fund);
+      document.getElementById("modalCodeBadge").textContent = fund.code;
+      document.getElementById("modalTypeBadge").textContent = fund.type;
+      document.getElementById("modalValuationBadge").innerHTML = `<span class="px-2 py-0.5 rounded text-xs font-bold border ${val.badgeClass}">${val.tag}</span>`;
+      document.getElementById("modalName").textContent = fund.name;
+      document.getElementById("modalIssuer").textContent = `${fund.issuer} ‧ ${fund.category} ‧ 幣別 ${fund.currency}`;
+      document.getElementById("modalManager").textContent = fund.manager;
+
+      document.getElementById("modalDrawdownText").textContent = `距歷史高點回檔 -${val.drawdownPct.toFixed(2)}%`;
+      document.getElementById("modalSweetPrice").textContent = `≤ ${val.sweetThreshold.toFixed(2)}`;
+      document.getElementById("modalFairPrice").textContent = `${val.fairMin.toFixed(2)} ~ ${val.fairMax.toFixed(2)}`;
+      document.getElementById("modalExpPrice").textContent = `> ${val.expensiveThreshold.toFixed(2)}`;
+
+      document.getElementById("modalIssuePrice").textContent = `${fund.issue_price.toFixed(2)} 元`;
+      document.getElementById("modalCurrentNav").textContent = `${fund.nav.toFixed(2)} ${fund.currency}`;
+      document.getElementById("modalPeakNav").textContent = `${fund.peak_nav.toFixed(2)} 元`;
+      document.getElementById("modalValReason").textContent = val.reason;
+
+      // Beta Tuning
+      const betaInput = document.getElementById("modalBetaInput");
+      betaInput.value = fund.beta.toFixed(2);
+      betaInput.oninput = (e) => {
+        fund.beta = parseFloat(e.target.value) || 1.0;
+        renderModalMatrix(fund);
+      };
+
+      // Covered call note
+      const ccWarning = document.getElementById("modalCoveredCallWarning");
+      if (fund.is_covered_call) {
+        ccWarning.classList.remove("hidden");
+      } else {
+        ccWarning.classList.add("hidden");
+      }
+
+      document.getElementById("modalOfficialLink").href = fund.official_url;
+      document.getElementById("modalQueryLink").href = fund.query_url;
+
+      renderModalMatrix(fund);
+      document.getElementById("targetDetailModal").classList.remove("hidden");
+    }
+
+    function closeModal() {
+      document.getElementById("targetDetailModal").classList.add("hidden");
+    }
+
+    function renderModalMatrix(fund) {
+      const modeText = currentSimMode === "capital" 
+        ? `${(currentSimCapital / 10000).toFixed(0)} 萬元本金` 
+        : `${currentSimLots} 張持股`;
+      document.getElementById("modalSimModeText").textContent = modeText;
+
+      const points = [44000, 50000, 51000, 52000, 55000, 60000];
+      const rows = points.map(pt => {
+        const sc = computeScenario(fund, baseMarketIndex, pt);
+        const isCurrent = pt === currentTargetIndex;
+        const rowBg = isCurrent ? "bg-amber-50/80 font-bold" : "hover:bg-slate-50";
+
+        return `
+          <tr class="${rowBg} transition-colors">
+            <td class="py-2.5 px-3 flex items-center gap-1.5">
+              <span>${pt.toLocaleString()} 點</span>
+              ${isCurrent ? '<span class="px-1.5 py-0.2 rounded text-[10px] bg-amber-200 text-amber-900">當前選擇</span>' : ''}
+            </td>
+            <td class="py-2.5 px-3 text-right ${sc.idxGainPct >= 0 ? 'text-emerald-600' : 'text-slate-500'}">
+              ${sc.idxGainPct >= 0 ? '+' : ''}${sc.idxGainPct.toFixed(2)}%
+            </td>
+            <td class="py-2.5 px-3 text-right font-bold text-indigo-700">
+              +${sc.targetGainPct.toFixed(2)}%
+            </td>
+            <td class="py-2.5 px-3 text-right font-bold text-slate-900">
+              ${sc.targetPrice.toFixed(2)}
+            </td>
+            <td class="py-2.5 px-3 text-right font-bold text-blue-600">
+              +NT$ ${Math.round(sc.estProfit).toLocaleString()}
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      document.getElementById("modalScenarioMatrixBody").innerHTML = rows;
+    }
+
+    // Refresh simulation button
+    function refreshData() {
+      const btn = document.getElementById("refreshBtn");
+      const icon = document.getElementById("refreshIcon");
+      const text = document.getElementById("refreshText");
+      icon.classList.add("animate-spin");
+      text.textContent = "更新同步中...";
+
+      setTimeout(() => {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        lastUpdatedTimestamp = `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+
+        document.getElementById("lastUpdatedBadge").textContent = lastUpdatedTimestamp;
+        icon.classList.remove("animate-spin");
+        text.textContent = "同步完成！";
+        setTimeout(() => { text.textContent = "立即同步最新淨值"; }, 2000);
+        renderAll();
+      }, 500);
+    }
+
+    // Main Render Function
+    function renderAll() {
+      // 1. Compute for each fund
+      let processed = monitoredList.map(f => {
+        const val = computeValuation(f);
+        const sc = computeScenario(f, baseMarketIndex, currentTargetIndex);
+        return {
+          ...f,
+          val,
+          sc
+        };
+      });
+
+      // Update count badges
+      document.getElementById("cntAll").textContent = processed.length;
+      document.getElementById("cntFund").textContent = processed.filter(f => f.instrument_type === 'fund').length;
+      document.getElementById("cntAct").textContent = processed.filter(f => f.instrument_type === 'act').length;
+      document.getElementById("cntEtf").textContent = processed.filter(f => f.instrument_type === 'etf').length;
+
+      document.getElementById("cntSweet").textContent = processed.filter(f => f.val.status === 'sweet').length;
+      document.getElementById("cntFair").textContent = processed.filter(f => f.val.status === 'fair').length;
+      document.getElementById("cntExp").textContent = processed.filter(f => f.val.status === 'expensive').length;
+
+      // 2. Scenario Simulator Top 4 Highlights
+      let sortedByGain = [...processed].sort((a, b) => b.sc.targetGainPct - a.sc.targetGainPct);
+      const top4Highlights = sortedByGain.slice(0, 4).map(f => {
+        return `
+          <div onclick="openModal('${f.id}')" class="bg-indigo-950/70 hover:bg-indigo-900 border border-indigo-700/60 p-3 rounded-xl cursor-pointer transition-all">
+            <div class="flex items-center justify-between text-[11px] text-indigo-300">
+              <span class="font-mono font-bold">${f.code}</span>
+              <span class="font-semibold text-amber-300">Beta ${f.beta.toFixed(1)}</span>
+            </div>
+            <div class="font-bold text-white text-xs truncate mt-1">${f.name}</div>
+            <div class="flex items-baseline justify-between mt-2">
+              <span class="text-xs text-indigo-200">目標價 ${f.sc.targetPrice.toFixed(2)}</span>
+              <span class="text-xs font-extrabold text-amber-400 font-mono">+${f.sc.targetGainPct.toFixed(1)}%</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+      document.getElementById("scenarioTopGrid").innerHTML = top4Highlights;
+
+      // 3. Filter for Cards & Table
+      let filtered = processed.filter(f => {
+        if (currentInstFilter !== "all" && f.instrument_type !== currentInstFilter) return false;
+        if (currentValFilter !== "all" && f.val.status !== currentValFilter) return false;
+        return true;
+      });
+
+      document.getElementById("displayCount").textContent = filtered.length;
+
+      // 4. Render Instrument Cards
+      const cardsHtml = filtered.map(f => {
+        const val = f.val;
+        const sc = f.sc;
+
+        // Position on 3-tier gauge
+        let gaugePointerPct = 50;
+        if (val.status === "sweet") gaugePointerPct = 16;
+        else if (val.status === "fair") gaugePointerPct = 50;
+        else gaugePointerPct = 84;
+
+        return `
+          <div class="bg-white border border-slate-200 hover:border-blue-400 rounded-2xl p-4 shadow-xs transition-all hover:shadow-md flex flex-col justify-between space-y-3">
+            <div>
+              <!-- Card Header -->
+              <div class="flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-100 text-slate-800">${f.code}</span>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${val.badgeClass}">${val.tag}</span>
+              </div>
+
+              <!-- Title & Category -->
+              <h3 onclick="openModal('${f.id}')" class="font-extrabold text-slate-900 text-sm mt-2 hover:text-blue-600 cursor-pointer truncate" title="${f.name}">
+                ${f.name}
+              </h3>
+              <p class="text-[11px] text-slate-500 flex justify-between mt-0.5">
+                <span>${f.issuer} ‧ ${f.category}</span>
+                <span class="font-bold text-slate-700">Beta ${f.beta.toFixed(2)}</span>
+              </p>
+
+              <!-- Current NAV & High / Drawdown -->
+              <div class="grid grid-cols-3 gap-1 bg-slate-50 p-2 rounded-xl border border-slate-100 mt-2.5 text-center text-xs">
+                <div>
+                  <div class="text-[10px] text-slate-400">目前淨值</div>
+                  <div class="font-bold text-slate-900 font-mono">${f.nav.toFixed(2)}</div>
+                </div>
+                <div>
+                  <div class="text-[10px] text-slate-400">歷史高點</div>
+                  <div class="font-medium text-slate-600 font-mono">${f.peak_nav.toFixed(2)}</div>
+                </div>
+                <div>
+                  <div class="text-[10px] text-slate-400">回檔幅度</div>
+                  <div class="font-bold text-rose-600 font-mono">-${val.drawdownPct.toFixed(1)}%</div>
+                </div>
+              </div>
+
+              <!-- Visual 3-Stage Price Gauge Bar -->
+              <div class="mt-3 space-y-1">
+                <div class="flex justify-between text-[10px] text-slate-500">
+                  <span class="text-emerald-700 font-semibold">甜甜 ≤${val.sweetThreshold.toFixed(1)}</span>
+                  <span class="text-amber-700 font-semibold">合理 ${val.fairMin.toFixed(1)}~${val.fairMax.toFixed(1)}</span>
+                  <span class="text-rose-700 font-semibold">昂貴 &gt;${val.expensiveThreshold.toFixed(1)}</span>
+                </div>
+                <div class="relative w-full h-2 rounded-full overflow-hidden flex bg-slate-200">
+                  <div class="bg-emerald-500 h-full" style="width: 33.3%"></div>
+                  <div class="bg-amber-400 h-full" style="width: 33.3%"></div>
+                  <div class="bg-rose-500 h-full" style="width: 33.4%"></div>
+                </div>
+              </div>
+
+              <!-- Market Scenario Projection Box -->
+              <div class="bg-indigo-50/60 border border-indigo-100 rounded-xl p-2.5 mt-3 space-y-1">
+                <div class="flex justify-between items-center text-[11px]">
+                  <span class="text-indigo-900 font-bold">大盤 ${currentTargetIndex.toLocaleString()} 點情境</span>
+                  <span class="font-mono font-extrabold text-indigo-700 text-xs">+${sc.targetGainPct.toFixed(2)}%</span>
+                </div>
+                <div class="flex justify-between items-baseline text-xs">
+                  <span class="text-slate-500">目標預估價</span>
+                  <span class="font-bold text-slate-900 font-mono text-sm">${sc.targetPrice.toFixed(2)} 元</span>
+                </div>
+                <div class="flex justify-between items-baseline text-xs pt-1 border-t border-indigo-100/60">
+                  <span class="text-slate-500">預估獲利</span>
+                  <span class="font-extrabold text-blue-600 font-mono">+NT$ ${Math.round(sc.estProfit).toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Bottom Actions -->
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+              <button onclick="openModal('${f.id}')" class="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold flex items-center gap-1 transition-colors">
+                <span>🔍 深入試算</span>
+              </button>
+              <div class="flex items-center gap-1.5">
+                <a href="${f.official_url}" target="_blank" rel="noopener noreferrer" 
+                   class="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">官網</a>
+                <a href="${f.query_url}" target="_blank" rel="noopener noreferrer" 
+                   class="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">查淨值</a>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+      document.getElementById("instrumentsCardsGrid").innerHTML = cardsHtml || "<div class='col-span-3 text-center text-slate-400 py-8'>無符合篩選條件的標的</div>";
+
+      // 5. Render Table Rows
+      const tableRows = filtered.map(f => {
+        const val = f.val;
+        const sc = f.sc;
+
+        return `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="py-3 px-3">
+              <div onclick="openModal('${f.id}')" class="font-bold text-slate-900 hover:text-blue-600 hover:underline cursor-pointer flex items-center gap-1">
+                <span class="text-blue-600">[${f.code}]</span> ${f.name}
+              </div>
+              <div class="text-[11px] text-slate-400 font-sans">${f.issuer} ‧ 經理人：${f.manager.split('/')[0]}</div>
+            </td>
+            <td class="py-3 px-3 text-center font-sans">
+              <span class="px-2 py-0.5 rounded text-[11px] bg-slate-100 text-slate-700">${f.type}</span>
+            </td>
+            <td class="py-3 px-3 text-right font-bold text-slate-900">${f.nav.toFixed(2)}</td>
+            <td class="py-3 px-3 text-right text-slate-500">${f.peak_nav.toFixed(2)}</td>
+            <td class="py-3 px-3 text-right font-bold text-rose-600">-${val.drawdownPct.toFixed(1)}%</td>
+            <td class="py-3 px-3 text-center font-sans">
+              <span class="px-2 py-0.5 rounded text-[11px] font-bold border ${val.badgeClass}">${val.tag}</span>
+            </td>
+            <td class="py-3 px-3 text-center text-[11px] text-slate-500">
+              <span class="text-emerald-700">≤${val.sweetThreshold.toFixed(1)}</span> / 
+              <span class="text-amber-700">${val.fairMin.toFixed(1)}~${val.fairMax.toFixed(1)}</span> / 
+              <span class="text-rose-700">&gt;${val.expensiveThreshold.toFixed(1)}</span>
+            </td>
+            <td class="py-3 px-3 text-center font-bold text-slate-700">${f.beta.toFixed(2)}</td>
+            <td class="py-3 px-3 text-right font-bold text-indigo-700">${sc.targetPrice.toFixed(2)}</td>
+            <td class="py-3 px-3 text-right font-bold text-emerald-600">+${sc.targetGainPct.toFixed(2)}%</td>
+            <td class="py-3 px-3 text-right font-extrabold text-blue-600">+${Math.round(sc.estProfit).toLocaleString()}</td>
+            <td class="py-3 px-3 text-center font-sans">
+              <div class="flex items-center justify-center gap-1">
+                <button onclick="openModal('${f.id}')" class="px-2 py-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 font-medium">試算</button>
+                <a href="${f.official_url}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">官網</a>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+      document.getElementById("scenarioTableBody").innerHTML = tableRows;
+    }
+
+    // Input Event Listeners
+    document.getElementById("targetIndexSlider").addEventListener("input", (e) => {
+      currentTargetIndex = parseInt(e.target.value);
+      updateScenarioUI();
+      renderAll();
+    });
+
+    document.getElementById("baseIndexInput").addEventListener("input", (e) => {
+      baseMarketIndex = parseFloat(e.target.value) || 44000;
+      updateScenarioUI();
+      renderAll();
+    });
+
+    document.getElementById("simCapitalInput").addEventListener("input", (e) => {
+      currentSimCapital = (parseFloat(e.target.value) || 100) * 10000;
+      renderAll();
+    });
+
+    document.getElementById("simLotsInput").addEventListener("input", (e) => {
+      currentSimLots = parseFloat(e.target.value) || 10;
+      renderAll();
+    });
+
+    // Initial load
+    updateScenarioUI();
+    renderAll();
+  </script>
+</body>
+</html>

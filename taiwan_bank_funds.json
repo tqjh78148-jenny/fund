@@ -1,0 +1,1391 @@
+{
+  "last_updated": "2026-11-06 12:16:55",
+  "base_market_index": 44000,
+  "default_target_index": 50000,
+  "market_index_name": "台灣加權股價指數 (TAIEX)",
+  "criteria_description": "雙重位階評估：模型 A (波段高點回檔法 DD) + 模型 B (均線負乖離法 60MA/120MA BIAS)；科技類股專屬 Beta 乘數 1.6~2.0 連動大盤 50,000 點推估目標價",
+  "targets": [
+    {
+      "id": "ETF_0052",
+      "code": "0052",
+      "twse_code": "tse_0052.tw",
+      "name": "富邦科技",
+      "type": "etf",
+      "category": "純科技龍頭 ETF",
+      "issuer": "富邦投信",
+      "market_channel": "台股集中市場掛牌撮合交易 (代號 0052)",
+      "current_price": 55.9,
+      "change_pct": -3.2,
+      "peak_price": 66.5,
+      "ma_60": 58.2,
+      "ma_120": 54.1,
+      "beta": 1.85,
+      "tech_ratio": 98,
+      "official_url": "https://www.fubon.com/asset-management/fund/0052",
+      "query_url": "https://tw.stock.yahoo.com/quote/0052.TW",
+      "evaluation": {
+        "dd_pct": 15.94,
+        "bias_60_pct": -3.95,
+        "bias_120_pct": 3.33,
+        "model_a": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (健康回測)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 25.23,
+        "target_price": 70.0,
+        "profit_per_100k": 25227.0
+      }
+    },
+    {
+      "id": "ETF_0050",
+      "code": "0050",
+      "twse_code": "tse_0050.tw",
+      "name": "元大台灣50",
+      "type": "etf",
+      "category": "台股市值龍頭 (科技佔比 > 70%)",
+      "issuer": "元大投信",
+      "market_channel": "台股集中市場掛牌撮合交易 (代號 0050)",
+      "current_price": 97.15,
+      "change_pct": -2.7,
+      "peak_price": 108.5,
+      "ma_60": 101.5,
+      "ma_120": 95.8,
+      "beta": 1.2,
+      "tech_ratio": 72,
+      "official_url": "https://www.yuantafunds.com/fund/intro/0050",
+      "query_url": "https://tw.stock.yahoo.com/quote/0050.TW",
+      "evaluation": {
+        "dd_pct": 10.46,
+        "bias_60_pct": -4.29,
+        "bias_120_pct": 1.41,
+        "model_a": {
+          "status": "合理偏高",
+          "tag": "🟡 常態整理區間"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 16.36,
+        "target_price": 113.05,
+        "profit_per_100k": 16364.0
+      }
+    },
+    {
+      "id": "ETF_006208",
+      "code": "006208",
+      "twse_code": "tse_006208.tw",
+      "name": "富邦台50",
+      "type": "etf",
+      "category": "台股市值權值 (科技佔比 > 70%)",
+      "issuer": "富邦投信",
+      "market_channel": "台股集中市場掛牌撮合交易 (代號 006208)",
+      "current_price": 222.55,
+      "change_pct": -2.63,
+      "peak_price": 248.0,
+      "ma_60": 231.5,
+      "ma_120": 219.0,
+      "beta": 1.2,
+      "tech_ratio": 72,
+      "official_url": "https://www.fubon.com/asset-management/fund/006208",
+      "query_url": "https://tw.stock.yahoo.com/quote/006208.TW",
+      "evaluation": {
+        "dd_pct": 10.26,
+        "bias_60_pct": -3.87,
+        "bias_120_pct": 1.62,
+        "model_a": {
+          "status": "合理偏高",
+          "tag": "🟡 常態整理區間"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 16.36,
+        "target_price": 258.97,
+        "profit_per_100k": 16364.0
+      }
+    },
+    {
+      "id": "ETF_00881",
+      "code": "00881",
+      "twse_code": "tse_00881.tw",
+      "name": "國泰台灣5G+",
+      "type": "etf",
+      "category": "5G 與科技旗艦 ETF",
+      "issuer": "國泰投信",
+      "market_channel": "台股集中市場掛牌撮合交易 (代號 00881)",
+      "current_price": 42.27,
+      "change_pct": -4.24,
+      "peak_price": 49.5,
+      "ma_60": 44.8,
+      "ma_120": 41.2,
+      "beta": 1.8,
+      "tech_ratio": 92,
+      "official_url": "https://www.cathaysite.com.tw/funds/detail/00881",
+      "query_url": "https://tw.stock.yahoo.com/quote/00881.TW",
+      "evaluation": {
+        "dd_pct": 14.61,
+        "bias_60_pct": -5.65,
+        "bias_120_pct": 2.6,
+        "model_a": {
+          "status": "合理偏高",
+          "tag": "🟡 常態整理區間"
+        },
+        "model_b": {
+          "status": "偏甜合理",
+          "tag": "🟡 常態震盪"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 24.55,
+        "target_price": 52.65,
+        "profit_per_100k": 24545.0
+      }
+    },
+    {
+      "id": "ETF_00935",
+      "code": "00935",
+      "twse_code": "tse_00935.tw",
+      "name": "野村臺灣新科技50",
+      "type": "etf",
+      "category": "研發創新科技 ETF",
+      "issuer": "野村投信",
+      "market_channel": "台股集中市場掛牌撮合交易 (代號 00935)",
+      "current_price": 47.03,
+      "change_pct": -5.52,
+      "peak_price": 56.2,
+      "ma_60": 50.1,
+      "ma_120": 45.8,
+      "beta": 1.85,
+      "tech_ratio": 95,
+      "official_url": "https://www.nomuramt.com.tw/ETF/00935",
+      "query_url": "https://tw.stock.yahoo.com/quote/00935.TW",
+      "evaluation": {
+        "dd_pct": 16.32,
+        "bias_60_pct": -6.13,
+        "bias_120_pct": 2.69,
+        "model_a": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (健康回測)"
+        },
+        "model_b": {
+          "status": "偏甜合理",
+          "tag": "🟡 常態震盪"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 25.23,
+        "target_price": 58.89,
+        "profit_per_100k": 25227.0
+      }
+    },
+    {
+      "id": "ETF_00941",
+      "code": "00941",
+      "twse_code": "tse_00941.tw",
+      "name": "中信上游半導體",
+      "type": "etf",
+      "category": "半導體材料設備主題",
+      "issuer": "中國信託投信",
+      "market_channel": "台股集中市場掛牌撮合交易 (代號 00941)",
+      "current_price": 23.8,
+      "change_pct": -2.06,
+      "peak_price": 28.5,
+      "ma_60": 25.2,
+      "ma_120": 23.1,
+      "beta": 1.75,
+      "tech_ratio": 96,
+      "official_url": "https://www.ctbcinvestments.com/funds/00941",
+      "query_url": "https://tw.stock.yahoo.com/quote/00941.TW",
+      "evaluation": {
+        "dd_pct": 16.49,
+        "bias_60_pct": -5.56,
+        "bias_120_pct": 3.03,
+        "model_a": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (健康回測)"
+        },
+        "model_b": {
+          "status": "偏甜合理",
+          "tag": "🟡 常態震盪"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 23.86,
+        "target_price": 29.48,
+        "profit_per_100k": 23864.0
+      }
+    },
+    {
+      "id": "ETF_00929",
+      "code": "00929",
+      "twse_code": "tse_00929.tw",
+      "name": "復華台灣科技優息",
+      "type": "etf",
+      "category": "科技高股息主題 ETF",
+      "issuer": "復華投信",
+      "market_channel": "台股集中市場掛牌撮合交易 (代號 00929)",
+      "current_price": 25.14,
+      "change_pct": -1.8,
+      "peak_price": 29.8,
+      "ma_60": 26.5,
+      "ma_120": 24.8,
+      "beta": 1.65,
+      "tech_ratio": 99,
+      "official_url": "https://www.fuhwa.com.tw/fund/00929",
+      "query_url": "https://tw.stock.yahoo.com/quote/00929.TW",
+      "evaluation": {
+        "dd_pct": 15.64,
+        "bias_60_pct": -5.13,
+        "bias_120_pct": 1.37,
+        "model_a": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (健康回測)"
+        },
+        "model_b": {
+          "status": "偏甜合理",
+          "tag": "🟡 常態震盪"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 22.5,
+        "target_price": 30.8,
+        "profit_per_100k": 22500.0
+      }
+    },
+    {
+      "id": "ETF_00891",
+      "code": "00891",
+      "twse_code": "tse_00891.tw",
+      "name": "中信關鍵半導體",
+      "type": "etf",
+      "category": "臺灣半導體供應鏈主題",
+      "issuer": "中國信託投信",
+      "market_channel": "台股集中市場掛牌撮合交易 (代號 00891)",
+      "current_price": 32.14,
+      "change_pct": -3.5,
+      "peak_price": 38.6,
+      "ma_60": 34.5,
+      "ma_120": 31.8,
+      "beta": 1.9,
+      "tech_ratio": 98,
+      "official_url": "https://www.ctbcinvestments.com/funds/00891",
+      "query_url": "https://tw.stock.yahoo.com/quote/00891.TW",
+      "evaluation": {
+        "dd_pct": 16.74,
+        "bias_60_pct": -6.84,
+        "bias_120_pct": 1.07,
+        "model_a": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (健康回測)"
+        },
+        "model_b": {
+          "status": "偏甜合理",
+          "tag": "🟡 常態震盪"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 25.91,
+        "target_price": 40.47,
+        "profit_per_100k": 25909.0
+      }
+    },
+    {
+      "id": "ETF_00892",
+      "code": "00892",
+      "twse_code": "tse_00892.tw",
+      "name": "富邦台灣半導體",
+      "type": "etf",
+      "category": "台灣半導體核心 ETF",
+      "issuer": "富邦投信",
+      "market_channel": "台股集中市場掛牌撮合交易 (代號 00892)",
+      "current_price": 33.94,
+      "change_pct": -2.9,
+      "peak_price": 40.5,
+      "ma_60": 36.2,
+      "ma_120": 33.1,
+      "beta": 1.85,
+      "tech_ratio": 97,
+      "official_url": "https://www.fubon.com/asset-management/fund/00892",
+      "query_url": "https://tw.stock.yahoo.com/quote/00892.TW",
+      "evaluation": {
+        "dd_pct": 16.2,
+        "bias_60_pct": -6.24,
+        "bias_120_pct": 2.54,
+        "model_a": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (健康回測)"
+        },
+        "model_b": {
+          "status": "偏甜合理",
+          "tag": "🟡 常態震盪"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 25.23,
+        "target_price": 42.5,
+        "profit_per_100k": 25227.0
+      }
+    },
+    {
+      "id": "ETF_00904",
+      "code": "00904",
+      "twse_code": "tse_00904.tw",
+      "name": "新光臺灣半導體30",
+      "type": "etf",
+      "category": "半導體前 30 強 ETF",
+      "issuer": "新光投信",
+      "market_channel": "台股集中市場掛牌撮合交易 (代號 00904)",
+      "current_price": 32.95,
+      "change_pct": -3.1,
+      "peak_price": 39.2,
+      "ma_60": 35.1,
+      "ma_120": 32.0,
+      "beta": 1.85,
+      "tech_ratio": 98,
+      "official_url": "https://www.skit.com.tw/fund/00904",
+      "query_url": "https://tw.stock.yahoo.com/quote/00904.TW",
+      "evaluation": {
+        "dd_pct": 15.94,
+        "bias_60_pct": -6.13,
+        "bias_120_pct": 2.97,
+        "model_a": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (健康回測)"
+        },
+        "model_b": {
+          "status": "偏甜合理",
+          "tag": "🟡 常態震盪"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 25.23,
+        "target_price": 41.26,
+        "profit_per_100k": 25227.0
+      }
+    },
+    {
+      "id": "ETF_00735",
+      "code": "00735",
+      "twse_code": "tse_00735.tw",
+      "name": "國泰臺韓科技",
+      "type": "etf",
+      "category": "亞洲半導體與高科技旗艦",
+      "issuer": "國泰投信",
+      "market_channel": "台股集中市場掛牌撮合交易 (代號 00735)",
+      "current_price": 87.15,
+      "change_pct": -2.8,
+      "peak_price": 104.0,
+      "ma_60": 93.5,
+      "ma_120": 85.0,
+      "beta": 1.8,
+      "tech_ratio": 90,
+      "official_url": "https://www.cathaysite.com.tw/funds/detail/00735",
+      "query_url": "https://tw.stock.yahoo.com/quote/00735.TW",
+      "evaluation": {
+        "dd_pct": 16.2,
+        "bias_60_pct": -6.79,
+        "bias_120_pct": 2.53,
+        "model_a": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (健康回測)"
+        },
+        "model_b": {
+          "status": "偏甜合理",
+          "tag": "🟡 常態震盪"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 24.55,
+        "target_price": 108.54,
+        "profit_per_100k": 24545.0
+      }
+    },
+    {
+      "id": "ETF_00757",
+      "code": "00757",
+      "twse_code": "tse_00757.tw",
+      "name": "統一FANG+",
+      "type": "etf",
+      "category": "全球頂尖科技科技巨頭 (尖牙股)",
+      "issuer": "統一投信",
+      "market_channel": "台股集中市場掛牌撮合交易 (代號 00757)",
+      "current_price": 136.2,
+      "change_pct": 0.65,
+      "peak_price": 148.5,
+      "ma_60": 132.0,
+      "ma_120": 121.5,
+      "beta": 1.95,
+      "tech_ratio": 95,
+      "official_url": "https://www.ezfunds.com.tw/fund/00757",
+      "query_url": "https://tw.stock.yahoo.com/quote/00757.TW",
+      "evaluation": {
+        "dd_pct": 8.28,
+        "bias_60_pct": 3.18,
+        "bias_120_pct": 12.1,
+        "model_a": {
+          "status": "昂貴價",
+          "tag": "🔴 昂貴價 (追高風險大)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "expensive",
+          "tag": "🔴 昂貴過熱",
+          "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 26.59,
+        "target_price": 172.42,
+        "profit_per_100k": 26591.0
+      }
+    },
+    {
+      "id": "ETF_00662",
+      "code": "00662",
+      "twse_code": "tse_00662.tw",
+      "name": "富邦NASDAQ-100",
+      "type": "etf",
+      "category": "美股科技那斯達克 100 指數",
+      "issuer": "富邦投信",
+      "market_channel": "台股集中市場掛牌撮合交易 (代號 00662)",
+      "current_price": 118.75,
+      "change_pct": 0.4,
+      "peak_price": 128.0,
+      "ma_60": 116.2,
+      "ma_120": 107.5,
+      "beta": 1.7,
+      "tech_ratio": 80,
+      "official_url": "https://www.fubon.com/asset-management/fund/00662",
+      "query_url": "https://tw.stock.yahoo.com/quote/00662.TW",
+      "evaluation": {
+        "dd_pct": 7.23,
+        "bias_60_pct": 2.19,
+        "bias_120_pct": 10.47,
+        "model_a": {
+          "status": "昂貴價",
+          "tag": "🔴 昂貴價 (追高風險大)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "expensive",
+          "tag": "🔴 昂貴過熱",
+          "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 23.18,
+        "target_price": 146.28,
+        "profit_per_100k": 23182.0
+      }
+    },
+    {
+      "id": "ETF_00830",
+      "code": "00830",
+      "twse_code": "tse_00830.tw",
+      "name": "國泰費城半導體",
+      "type": "etf",
+      "category": "美國費城半導體指數純科技",
+      "issuer": "國泰投信",
+      "market_channel": "台股集中市場掛牌撮合交易 (代號 00830)",
+      "current_price": 73.25,
+      "change_pct": -1.2,
+      "peak_price": 84.5,
+      "ma_60": 76.8,
+      "ma_120": 69.5,
+      "beta": 2.0,
+      "tech_ratio": 100,
+      "official_url": "https://www.cathaysite.com.tw/funds/detail/00830",
+      "query_url": "https://tw.stock.yahoo.com/quote/00830.TW",
+      "evaluation": {
+        "dd_pct": 13.31,
+        "bias_60_pct": -4.62,
+        "bias_120_pct": 5.4,
+        "model_a": {
+          "status": "合理偏高",
+          "tag": "🟡 常態整理區間"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 27.27,
+        "target_price": 93.23,
+        "profit_per_100k": 27273.0
+      }
+    },
+    {
+      "id": "ETF_00851",
+      "code": "00851",
+      "twse_code": "tse_00851.tw",
+      "name": "台新全球AI",
+      "type": "etf",
+      "category": "全球生成式 AI 與機器人",
+      "issuer": "台新投信",
+      "market_channel": "台股集中市場掛牌撮合交易 (代號 00851)",
+      "current_price": 68.5,
+      "change_pct": 0.3,
+      "peak_price": 76.0,
+      "ma_60": 67.2,
+      "ma_120": 61.5,
+      "beta": 1.8,
+      "tech_ratio": 92,
+      "official_url": "https://www.tsit.com.tw/Fund/00851",
+      "query_url": "https://tw.stock.yahoo.com/quote/00851.TW",
+      "evaluation": {
+        "dd_pct": 9.87,
+        "bias_60_pct": 1.93,
+        "bias_120_pct": 11.38,
+        "model_a": {
+          "status": "昂貴價",
+          "tag": "🔴 昂貴價 (追高風險大)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "expensive",
+          "tag": "🔴 昂貴過熱",
+          "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 24.55,
+        "target_price": 85.31,
+        "profit_per_100k": 24545.0
+      }
+    },
+    {
+      "id": "ETF_00934",
+      "code": "00934",
+      "twse_code": "tse_00934.tw",
+      "name": "中信成長高股息",
+      "type": "etf",
+      "category": "科技成長加權高股息 (科技比 > 60%)",
+      "issuer": "中國信託投信",
+      "market_channel": "台股集中市場掛牌撮合交易 (代號 00934)",
+      "current_price": 29.33,
+      "change_pct": -1.15,
+      "peak_price": 33.2,
+      "ma_60": 30.5,
+      "ma_120": 28.6,
+      "beta": 1.6,
+      "tech_ratio": 65,
+      "official_url": "https://www.ctbcinvestments.com/funds/00934",
+      "query_url": "https://tw.stock.yahoo.com/quote/00934.TW",
+      "evaluation": {
+        "dd_pct": 11.66,
+        "bias_60_pct": -3.84,
+        "bias_120_pct": 2.55,
+        "model_a": {
+          "status": "合理偏高",
+          "tag": "🟡 常態整理區間"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 21.82,
+        "target_price": 35.73,
+        "profit_per_100k": 21818.0
+      }
+    },
+    {
+      "id": "ETF_00992A",
+      "code": "00992A",
+      "twse_code": "tse_00992A.tw",
+      "name": "主動群益台灣科技創新",
+      "type": "etf",
+      "category": "主動式操盤科技 ETF",
+      "issuer": "群益投信",
+      "market_channel": "台股集中市場主動型 ETF 掛牌",
+      "current_price": 15.0,
+      "change_pct": 0.0,
+      "peak_price": 16.5,
+      "ma_60": 15.1,
+      "ma_120": 14.8,
+      "beta": 1.9,
+      "tech_ratio": 95,
+      "official_url": "https://www.capitalfund.com.tw/",
+      "query_url": "https://www.twse.com.tw/",
+      "evaluation": {
+        "dd_pct": 9.09,
+        "bias_60_pct": -0.66,
+        "bias_120_pct": 1.35,
+        "model_a": {
+          "status": "昂貴價",
+          "tag": "🔴 昂貴價 (追高風險大)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "expensive",
+          "tag": "🔴 昂貴過熱",
+          "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 25.91,
+        "target_price": 18.89,
+        "profit_per_100k": 25909.0
+      }
+    },
+    {
+      "id": "ETF_00981A",
+      "code": "00981A",
+      "twse_code": "tse_00981A.tw",
+      "name": "主動統一台股增長",
+      "type": "etf",
+      "category": "主動式操盤增長型 ETF",
+      "issuer": "統一投信",
+      "market_channel": "台股集中市場主動型 ETF 掛牌",
+      "current_price": 15.0,
+      "change_pct": 0.0,
+      "peak_price": 16.5,
+      "ma_60": 15.2,
+      "ma_120": 14.7,
+      "beta": 1.85,
+      "tech_ratio": 90,
+      "official_url": "https://www.ezfunds.com.tw/",
+      "query_url": "https://www.twse.com.tw/",
+      "evaluation": {
+        "dd_pct": 9.09,
+        "bias_60_pct": -1.32,
+        "bias_120_pct": 2.04,
+        "model_a": {
+          "status": "昂貴價",
+          "tag": "🔴 昂貴價 (追高風險大)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "expensive",
+          "tag": "🔴 昂貴過熱",
+          "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 25.23,
+        "target_price": 18.78,
+        "profit_per_100k": 25227.0
+      }
+    },
+    {
+      "id": "FUND_ALLIANZ_TECH",
+      "code": "安聯科技",
+      "name": "安聯台灣科技基金",
+      "type": "fund",
+      "category": "境內頂級旗艦科技股票基金",
+      "issuer": "安聯投信",
+      "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+      "current_price": 613.35,
+      "change_pct": -7.88,
+      "peak_price": 726.5,
+      "ma_60": 668.0,
+      "ma_120": 610.0,
+      "beta": 1.95,
+      "tech_ratio": 92,
+      "official_url": "https://tw.allianzgi.com/",
+      "query_url": "https://fund.cnyes.com/detail/A14008",
+      "evaluation": {
+        "dd_pct": 15.57,
+        "bias_60_pct": -8.18,
+        "bias_120_pct": 0.55,
+        "model_a": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (健康回測)"
+        },
+        "model_b": {
+          "status": "偏甜合理",
+          "tag": "🟡 常態震盪"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 26.59,
+        "target_price": 776.45,
+        "profit_per_100k": 26591.0
+      }
+    },
+    {
+      "id": "FUND_UNI_PENTIUM",
+      "code": "統一奔騰",
+      "name": "統一奔騰基金",
+      "type": "fund",
+      "category": "高爆發力科技旗艦基金",
+      "issuer": "統一投信",
+      "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+      "current_price": 650.96,
+      "change_pct": 0.45,
+      "peak_price": 712.0,
+      "ma_60": 665.0,
+      "ma_120": 615.0,
+      "beta": 1.9,
+      "tech_ratio": 90,
+      "official_url": "https://www.ezfunds.com.tw/",
+      "query_url": "https://fund.cnyes.com/detail/A11011",
+      "evaluation": {
+        "dd_pct": 8.57,
+        "bias_60_pct": -2.11,
+        "bias_120_pct": 5.85,
+        "model_a": {
+          "status": "昂貴價",
+          "tag": "🔴 昂貴價 (追高風險大)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "expensive",
+          "tag": "🔴 昂貴過熱",
+          "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 25.91,
+        "target_price": 819.62,
+        "profit_per_100k": 25909.0
+      }
+    },
+    {
+      "id": "FUND_UNI_BLACKHORSE",
+      "code": "統一黑馬",
+      "name": "統一黑馬基金",
+      "type": "fund",
+      "category": "成長型高科技佈局基金",
+      "issuer": "統一投信",
+      "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+      "current_price": 517.06,
+      "change_pct": -8.2,
+      "peak_price": 595.0,
+      "ma_60": 545.0,
+      "ma_120": 505.0,
+      "beta": 1.85,
+      "tech_ratio": 86,
+      "official_url": "https://www.ezfunds.com.tw/",
+      "query_url": "https://fund.cnyes.com/detail/A11002",
+      "evaluation": {
+        "dd_pct": 13.1,
+        "bias_60_pct": -5.13,
+        "bias_120_pct": 2.39,
+        "model_a": {
+          "status": "合理偏高",
+          "tag": "🟡 常態整理區間"
+        },
+        "model_b": {
+          "status": "偏甜合理",
+          "tag": "🟡 常態震盪"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 25.23,
+        "target_price": 647.5,
+        "profit_per_100k": 25227.0
+      }
+    },
+    {
+      "id": "FUND_NOMURA_HITECH",
+      "code": "野村高科",
+      "name": "野村高科技基金",
+      "type": "fund",
+      "category": "半導體與 AI 核心科技基金",
+      "issuer": "野村投信",
+      "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+      "current_price": 97.07,
+      "change_pct": -8.1,
+      "peak_price": 118.5,
+      "ma_60": 106.0,
+      "ma_120": 98.2,
+      "beta": 1.85,
+      "tech_ratio": 94,
+      "official_url": "https://www.nomuramt.com.tw/",
+      "query_url": "https://fund.cnyes.com/detail/A18002",
+      "evaluation": {
+        "dd_pct": 18.08,
+        "bias_60_pct": -8.42,
+        "bias_120_pct": -1.15,
+        "model_a": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (健康回測)"
+        },
+        "model_b": {
+          "status": "偏甜合理",
+          "tag": "🟡 常態震盪"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 25.23,
+        "target_price": 121.56,
+        "profit_per_100k": 25227.0
+      }
+    },
+    {
+      "id": "FUND_NOMURA_QUALITY",
+      "code": "野村優質",
+      "name": "野村優質基金",
+      "type": "fund",
+      "category": "頂級成長權值科技型基金",
+      "issuer": "野村投信",
+      "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+      "current_price": 452.66,
+      "change_pct": -2.92,
+      "peak_price": 505.0,
+      "ma_60": 468.0,
+      "ma_120": 435.0,
+      "beta": 1.75,
+      "tech_ratio": 82,
+      "official_url": "https://www.nomuramt.com.tw/",
+      "query_url": "https://fund.cnyes.com/detail/A18012",
+      "evaluation": {
+        "dd_pct": 10.36,
+        "bias_60_pct": -3.28,
+        "bias_120_pct": 4.06,
+        "model_a": {
+          "status": "合理偏高",
+          "tag": "🟡 常態整理區間"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 23.86,
+        "target_price": 560.68,
+        "profit_per_100k": 23864.0
+      }
+    },
+    {
+      "id": "FUND_TAISHIN_CHINAPASS",
+      "code": "台新中國",
+      "name": "台新中國通基金",
+      "type": "fund",
+      "category": "大中華高科技與半導體持股",
+      "issuer": "台新投信",
+      "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+      "current_price": 354.44,
+      "change_pct": 0.36,
+      "peak_price": 395.0,
+      "ma_60": 365.0,
+      "ma_120": 342.0,
+      "beta": 1.7,
+      "tech_ratio": 75,
+      "official_url": "https://www.tsit.com.tw/",
+      "query_url": "https://fund.cnyes.com/detail/A24003",
+      "evaluation": {
+        "dd_pct": 10.27,
+        "bias_60_pct": -2.89,
+        "bias_120_pct": 3.64,
+        "model_a": {
+          "status": "合理偏高",
+          "tag": "🟡 常態整理區間"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 23.18,
+        "target_price": 436.61,
+        "profit_per_100k": 23182.0
+      }
+    },
+    {
+      "id": "FUND_FUHWA_DIGITAL",
+      "code": "復華數位",
+      "name": "復華數位經濟基金",
+      "type": "fund",
+      "category": "數位轉型與 AI 經濟核心",
+      "issuer": "復華投信",
+      "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+      "current_price": 160.94,
+      "change_pct": -1.25,
+      "peak_price": 185.0,
+      "ma_60": 171.0,
+      "ma_120": 158.0,
+      "beta": 1.85,
+      "tech_ratio": 88,
+      "official_url": "https://www.fuhwa.com.tw/",
+      "query_url": "https://fund.cnyes.com/detail/A17013",
+      "evaluation": {
+        "dd_pct": 13.01,
+        "bias_60_pct": -5.88,
+        "bias_120_pct": 1.86,
+        "model_a": {
+          "status": "合理偏高",
+          "tag": "🟡 常態整理區間"
+        },
+        "model_b": {
+          "status": "偏甜合理",
+          "tag": "🟡 常態震盪"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 25.23,
+        "target_price": 201.54,
+        "profit_per_100k": 25227.0
+      }
+    },
+    {
+      "id": "FUND_TAISHIN_TW_SME",
+      "code": "台新中小",
+      "name": "台新台灣中小基金",
+      "type": "fund",
+      "category": "中小型高成長科技飆股型",
+      "issuer": "台新投信",
+      "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+      "current_price": 230.7,
+      "change_pct": -1.5,
+      "peak_price": 262.0,
+      "ma_60": 242.0,
+      "ma_120": 225.0,
+      "beta": 1.8,
+      "tech_ratio": 78,
+      "official_url": "https://www.tsit.com.tw/",
+      "query_url": "https://fund.cnyes.com/detail/A24008",
+      "evaluation": {
+        "dd_pct": 11.95,
+        "bias_60_pct": -4.67,
+        "bias_120_pct": 2.53,
+        "model_a": {
+          "status": "合理偏高",
+          "tag": "🟡 常態整理區間"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 24.55,
+        "target_price": 287.33,
+        "profit_per_100k": 24545.0
+      }
+    },
+    {
+      "id": "FUND_CAPITAL_MARATHON",
+      "code": "群益長跑",
+      "name": "群益馬拉松基金",
+      "type": "fund",
+      "category": "長青績優科技與中長線黑馬",
+      "issuer": "群益投信",
+      "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+      "current_price": 438.81,
+      "change_pct": -1.8,
+      "peak_price": 495.0,
+      "ma_60": 458.0,
+      "ma_120": 422.0,
+      "beta": 1.75,
+      "tech_ratio": 80,
+      "official_url": "https://www.capitalfund.com.tw/",
+      "query_url": "https://fund.cnyes.com/detail/A20002",
+      "evaluation": {
+        "dd_pct": 11.35,
+        "bias_60_pct": -4.19,
+        "bias_120_pct": 3.98,
+        "model_a": {
+          "status": "合理偏高",
+          "tag": "🟡 常態整理區間"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "fair",
+          "tag": "🟡 偏甜 / 合理",
+          "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 23.86,
+        "target_price": 543.53,
+        "profit_per_100k": 23864.0
+      }
+    },
+    {
+      "id": "FUND_BGF_WORLD_TECH",
+      "code": "貝萊德科技",
+      "name": "貝萊德世界科技基金 (美元A2)",
+      "type": "fund",
+      "category": "全球一級科技航母基金 (銀行熱銷外幣)",
+      "issuer": "貝萊德投信",
+      "market_channel": "全台各商業銀行外幣/台幣信託專戶申購",
+      "current_price": 144.33,
+      "change_pct": 0.25,
+      "peak_price": 158.0,
+      "ma_60": 142.5,
+      "ma_120": 132.0,
+      "beta": 1.8,
+      "tech_ratio": 98,
+      "official_url": "https://www.blackrock.com/tw",
+      "query_url": "https://fund.cnyes.com/detail/B03,024",
+      "evaluation": {
+        "dd_pct": 8.65,
+        "bias_60_pct": 1.28,
+        "bias_120_pct": 9.34,
+        "model_a": {
+          "status": "昂貴價",
+          "tag": "🔴 昂貴價 (追高風險大)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "expensive",
+          "tag": "🔴 昂貴過熱",
+          "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 24.55,
+        "target_price": 179.76,
+        "profit_per_100k": 24545.0
+      }
+    },
+    {
+      "id": "FUND_JPM_US_TECH",
+      "code": "摩根美科",
+      "name": "摩根美國科技基金 (美元A股)",
+      "type": "fund",
+      "category": "美國軟體與頂尖科技重鎮 (銀行熱銷)",
+      "issuer": "摩根投信",
+      "market_channel": "全台各商業銀行外幣/台幣信託專戶申購",
+      "current_price": 129.16,
+      "change_pct": 0.4,
+      "peak_price": 138.5,
+      "ma_60": 127.0,
+      "ma_120": 118.0,
+      "beta": 1.85,
+      "tech_ratio": 95,
+      "official_url": "https://am.jpmorgan.com/tw",
+      "query_url": "https://fund.cnyes.com/detail/B01,059",
+      "evaluation": {
+        "dd_pct": 6.74,
+        "bias_60_pct": 1.7,
+        "bias_120_pct": 9.46,
+        "model_a": {
+          "status": "昂貴價",
+          "tag": "🔴 昂貴價 (追高風險大)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "expensive",
+          "tag": "🔴 昂貴過熱",
+          "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 25.23,
+        "target_price": 161.74,
+        "profit_per_100k": 25227.0
+      }
+    },
+    {
+      "id": "FUND_FRANKLIN_TECH",
+      "code": "富蘭科技",
+      "name": "富蘭克林科技基金 (美元A股)",
+      "type": "fund",
+      "category": "矽谷高科技與雲端運算 (銀行熱銷)",
+      "issuer": "富蘭克林投顧",
+      "market_channel": "全台各商業銀行外幣/台幣信託專戶申購",
+      "current_price": 70.12,
+      "change_pct": 0.15,
+      "peak_price": 77.0,
+      "ma_60": 69.0,
+      "ma_120": 64.0,
+      "beta": 1.8,
+      "tech_ratio": 96,
+      "official_url": "https://www.franklin.com.tw/",
+      "query_url": "https://fund.cnyes.com/detail/B02,028",
+      "evaluation": {
+        "dd_pct": 8.94,
+        "bias_60_pct": 1.62,
+        "bias_120_pct": 9.56,
+        "model_a": {
+          "status": "昂貴價",
+          "tag": "🔴 昂貴價 (追高風險大)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "expensive",
+          "tag": "🔴 昂貴過熱",
+          "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 24.55,
+        "target_price": 87.33,
+        "profit_per_100k": 24545.0
+      }
+    },
+    {
+      "id": "FUND_FIDELITY_GLOBAL_TECH",
+      "code": "富達全科",
+      "name": "富達全球科技基金 (美元A股)",
+      "type": "fund",
+      "category": "跨國前瞻科技主題 (銀行熱銷)",
+      "issuer": "富達投信",
+      "market_channel": "全台各商業銀行外幣/台幣信託專戶申購",
+      "current_price": 87.35,
+      "change_pct": 0.3,
+      "peak_price": 95.0,
+      "ma_60": 86.0,
+      "ma_120": 79.5,
+      "beta": 1.75,
+      "tech_ratio": 92,
+      "official_url": "https://www.fidelity.com.tw/",
+      "query_url": "https://fund.cnyes.com/detail/B06,066",
+      "evaluation": {
+        "dd_pct": 8.05,
+        "bias_60_pct": 1.57,
+        "bias_120_pct": 9.87,
+        "model_a": {
+          "status": "昂貴價",
+          "tag": "🔴 昂貴價 (追高風險大)"
+        },
+        "model_b": {
+          "status": "合理價",
+          "tag": "🟡 合理價 (均線糾結回測支撐)"
+        },
+        "combined": {
+          "status": "expensive",
+          "tag": "🔴 昂貴過熱",
+          "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+        }
+      },
+      "scenario_50k": {
+        "base_index": 44000,
+        "target_index": 50000,
+        "delta_index_pct": 13.64,
+        "target_gain_pct": 23.86,
+        "target_price": 108.19,
+        "profit_per_100k": 23864.0
+      }
+    }
+  ]
+}

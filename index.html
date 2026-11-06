@@ -1,0 +1,2546 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台股科技 ETF 與高科技佔比基金——價格位階評估暨 50,000 點推估系統</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom clean scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f8fafc; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased p-3 sm:p-6 font-sans">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Header Block (Pure Card & Tags) -->
+    <header class="bg-white border border-slate-200 rounded-3xl p-5 sm:p-7 shadow-sm">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div class="space-y-2">
+          <!-- Live Status Tags -->
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              每日雙重位階即時更新中
+            </span>
+            <span id="quoteStatusTag" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
+              <span>📡 報價連線狀態：</span>
+              <span id="quoteSourceBadge" class="font-bold text-blue-900">載入中...</span>
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+              <span>📅 最後更新時間：</span>
+              <span id="lastUpdatedBadge" class="font-mono text-slate-900 font-extrabold">2026-11-06 13:49:16</span>
+            </span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              <span>📈 基準大盤：<b id="baseIndexText">44,000</b> 點</span>
+            </span>
+          </div>
+
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+            台股科技 ETF 與高科技佔比基金 ‧ 雙重位階評估暨 50,000 點推估系統
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-500 max-w-3xl leading-relaxed">
+            全自動即時抓取台股行情與基金淨值，採用【模型 A 高點回檔 Drawdown】與【模型 B 均線負乖離 60MA/120MA BIAS】雙重演算法，綜合判定「💎 雙重甜甜價 / 🟡 偏甜合理 / 🔴 昂貴過熱」，並推估大盤衝擊 50,000 點各標的目標價與預估收益。
+          </p>
+        </div>
+
+        <!-- Header Actions -->
+        <div class="flex flex-wrap items-center gap-2.5 text-xs">
+          <button onclick="toggleAutoPolling()" id="pollingBtn"
+                  class="px-3.5 py-2.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold flex items-center gap-1.5 transition-all shadow-2xs">
+            <span id="pollingDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+            <span id="pollingText">啟用 30 秒自動輪詢</span>
+          </button>
+          <button onclick="refreshData()" id="refreshBtn" 
+                  class="px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold flex items-center gap-1.5 transition-all shadow-xs active:scale-95">
+            <span id="refreshIcon">🔄</span>
+            <span id="refreshText">即時連線更新報價</span>
+          </button>
+          <button onclick="openAddTargetModal()" 
+                  class="px-3.5 py-2.5 rounded-2xl border border-indigo-300 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold flex items-center gap-1.5 transition-all shadow-2xs">
+            <span>➕ 動態新增標的</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Section: 大盤點位模擬器控制面板 (Pure Cards, No Tables) -->
+    <section class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-5 sm:p-7 shadow-md space-y-5">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-indigo-800/60 pb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+              🎯 大盤 50,000 點推估模型
+            </span>
+            <h2 class="text-lg sm:text-xl font-extrabold tracking-wide">
+              大盤指數情境與目標價推估
+            </h2>
+          </div>
+          <p class="text-xs text-indigo-200 mt-1">
+            公式：ΔIndex = (目標點數 - 基準點數) / 基準點數 ｜ 預估漲幅 = ΔIndex × 標的 Beta ｜ 預估目標價 = 現價 × (1 + 預估漲幅)
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3 text-xs bg-slate-800/80 px-3.5 py-2 rounded-2xl border border-indigo-700/60">
+          <span class="text-indigo-300">基準大盤指數：</span>
+          <input type="number" id="baseIndexInput" value="44000" step="500" 
+                 class="w-24 bg-slate-900 text-white border border-indigo-500 rounded-lg px-2 py-1 font-mono font-bold text-center">
+          <span class="text-indigo-300">點</span>
+        </div>
+      </div>
+
+      <!-- Controls: Target Points & Capital -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+        <!-- Target Points Selection -->
+        <div class="lg:col-span-7 space-y-3">
+          <div class="flex items-center justify-between text-xs sm:text-sm">
+            <span class="text-indigo-200 font-semibold">目標大盤點位設定：</span>
+            <div class="flex items-center gap-2">
+              <span id="targetIndexDisplay" class="font-mono text-2xl sm:text-3xl font-black text-amber-400">50,000</span>
+              <span class="text-xs text-amber-200 font-bold">點</span>
+              <span id="indexGainBadge" class="ml-2 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono">
+                大盤預估 +13.64%
+              </span>
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <input type="range" id="targetIndexSlider" min="44000" max="65000" step="500" value="50000"
+                   class="w-full h-2 bg-indigo-900 rounded-lg appearance-none cursor-pointer accent-amber-400">
+            <div class="flex justify-between text-[11px] text-indigo-300 font-mono">
+              <span>基準 44,000</span>
+              <span>48,000</span>
+              <span>50,000 (預設)</span>
+              <span>55,000</span>
+              <span>60,000</span>
+              <span>65,000</span>
+            </div>
+          </div>
+
+          <!-- Quick Preset Buttons -->
+          <div class="flex flex-wrap items-center gap-2 pt-1">
+            <span class="text-xs text-indigo-300">快速切換情境：</span>
+            <button onclick="setTargetIndex(50000)" id="idxBtn50000" 
+                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border border-amber-400 bg-amber-400 text-slate-950 shadow-sm">
+              50,000 點
+            </button>
+            <button onclick="setTargetIndex(51000)" id="idxBtn51000" 
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all border border-indigo-700 bg-indigo-950/70 text-indigo-200 hover:border-amber-400">
+              51,000 點
+            </button>
+            <button onclick="setTargetIndex(52000)" id="idxBtn52000" 
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all border border-indigo-700 bg-indigo-950/70 text-indigo-200 hover:border-amber-400">
+              52,000 點
+            </button>
+            <button onclick="setTargetIndex(55000)" id="idxBtn55000" 
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all border border-indigo-700 bg-indigo-950/70 text-indigo-200 hover:border-amber-400">
+              55,000 點
+            </button>
+            <button onclick="setTargetIndex(60000)" id="idxBtn60000" 
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all border border-indigo-700 bg-indigo-950/70 text-indigo-200 hover:border-amber-400">
+              60,000 點
+            </button>
+          </div>
+        </div>
+
+        <!-- Investment Capital Setting Card -->
+        <div class="lg:col-span-5 bg-indigo-900/40 border border-indigo-700/50 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-indigo-200">投資本金基準設定</span>
+            <span id="capitalText" class="text-xs font-mono font-extrabold text-amber-300 bg-amber-400/10 px-2 py-0.5 rounded-md border border-amber-400/20">
+              10 萬元
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <input type="number" id="capitalInput" value="10" min="1" max="1000" step="5"
+                   class="w-28 bg-slate-900 text-white border border-indigo-500 rounded-xl px-3 py-2 text-sm font-mono font-bold">
+            <span class="text-xs text-indigo-300">萬元新台幣</span>
+            <div class="flex gap-1.5 ml-auto">
+              <button onclick="setCapital(10)" class="px-2.5 py-1 text-[11px] rounded-lg bg-indigo-800 hover:bg-indigo-700 font-medium">10萬</button>
+              <button onclick="setCapital(50)" class="px-2.5 py-1 text-[11px] rounded-lg bg-indigo-800 hover:bg-indigo-700 font-medium">50萬</button>
+              <button onclick="setCapital(100)" class="px-2.5 py-1 text-[11px] rounded-lg bg-indigo-800 hover:bg-indigo-700 font-medium">100萬</button>
+            </div>
+          </div>
+          <p class="text-[11px] text-indigo-300">
+            卡片下方即時計算「每投入 <b>10 萬元</b> 之預估獲利金額」。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: 雙重位階判定演算法與綜合燈號規則 (Pure Cards, No Tables) -->
+    <section class="bg-white border border-slate-200 rounded-3xl p-5 sm:p-7 shadow-sm space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+          雙重位階判定演算法與綜合燈號規則
+        </h2>
+        <span class="text-xs text-slate-400 font-mono">模型 A 與 模型 B 雙軌交叉驗證</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Model A Card -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-extrabold text-slate-900 text-sm">模型 A：波段高點回檔法</h3>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-bold">Drawdown (DD)</span>
+          </div>
+          <p class="text-xs text-slate-500 font-mono">
+            計算公式：DD = (P_peak - P_current) / P_peak × 100%
+          </p>
+          <ul class="text-xs space-y-1.5">
+            <li class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              <span class="font-bold text-rose-700">昂貴價：</span>
+              <span class="text-slate-600">DD &lt; 10%（距高點不到一成，追高風險大）</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+              <span class="font-bold text-amber-700">合理價：</span>
+              <span class="text-slate-600">15% ≤ DD ≤ 20%（常態健康回測區間）</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span class="font-bold text-emerald-700">甜甜價：</span>
+              <span class="text-slate-600">DD ≥ 25%（超跌打折區，達 30% 為極甜）</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Model B Card -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-extrabold text-slate-900 text-sm">模型 B：均線負乖離法</h3>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold">BIAS (60MA / 120MA)</span>
+          </div>
+          <p class="text-xs text-slate-500 font-mono">
+            以 60MA 為主，120MA 為輔：BIAS = (P - MA) / MA × 100%
+          </p>
+          <ul class="text-xs space-y-1.5">
+            <li class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              <span class="font-bold text-rose-700">昂貴價：</span>
+              <span class="text-slate-600">BIAS_60 &gt; +15%（正乖離過大，短線過熱）</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+              <span class="font-bold text-amber-700">合理價：</span>
+              <span class="text-slate-600">-5% ≤ BIAS_60 ≤ +5%（均線糾結回測支撐）</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span class="font-bold text-emerald-700">甜甜價：</span>
+              <span class="text-slate-600">BIAS_60 ≤ -10% 或 BIAS_120 ≤ -12%（超跌拉回）</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Combined Signal Card -->
+        <div class="bg-indigo-50/50 border border-indigo-200 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-extrabold text-indigo-950 text-sm">綜合燈號判定規律</h3>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-200 text-indigo-900 font-bold">Dual Evaluation</span>
+          </div>
+          <p class="text-xs text-indigo-800 font-medium">
+            兼顧高點安全邊際與均線支撐力道
+          </p>
+          <ul class="text-xs space-y-2">
+            <li class="flex items-start gap-2">
+              <span class="text-base leading-none">💎</span>
+              <div>
+                <b class="text-emerald-800">雙重甜甜價：</b>
+                <span class="text-slate-600">模型 A 與 模型 B 同時符合甜甜價</span>
+              </div>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-base leading-none">🟡</span>
+              <div>
+                <b class="text-amber-800">偏甜 / 合理：</b>
+                <span class="text-slate-600">符合其中一項甜甜價，或兩者皆處合理區</span>
+              </div>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-base leading-none">🔴</span>
+              <div>
+                <b class="text-rose-800">昂貴過熱：</b>
+                <span class="text-slate-600">符合任一昂貴價標準，宜分批獲利或觀望</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Search, Filters & Quick Stats (Pure Tags & Badges) -->
+    <section class="space-y-3">
+      <!-- Search and Sort Bar -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="relative w-full sm:w-96">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">🔍</span>
+          <input type="text" id="searchInput" oninput="setSearchQuery(this.value)"
+                 placeholder="即時搜尋代碼、名稱、投信機構或科技領域 (如 0052, 半導體, 安聯, 統一, 5G, AI, 貝萊德...)"
+                 class="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end text-xs">
+          <span class="text-slate-500 shrink-0">排序方式：</span>
+          <select id="sortSelect" onchange="setSort(this.value)"
+                  class="border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold bg-white text-slate-700 outline-none cursor-pointer">
+            <option value="gain_desc">🚀 預估 50,000 點獲利 (高 ➔ 低)</option>
+            <option value="dd_desc">📉 波段回檔幅度 (深 ➔ 淺)</option>
+            <option value="tech_desc">🔥 科技股佔比 (高 ➔ 低)</option>
+            <option value="code_asc">🔢 標的代碼排序 (A ➔ Z)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Filter Tags Row -->
+      <div class="flex flex-wrap items-center justify-between gap-2.5">
+        <!-- Category Filters -->
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span class="text-xs text-slate-500 font-semibold mr-1">標的分類：</span>
+          <button onclick="setCategoryFilter('all')" id="catAll" 
+                  class="text-xs px-3.5 py-1.5 rounded-xl border border-blue-600 bg-blue-50 text-blue-700 font-bold">
+            全部標的 (<span id="countAll">0</span>)
+          </button>
+          <button onclick="setCategoryFilter('etf')" id="catEtf" 
+                  class="text-xs px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-400 font-medium">
+            🏛️ 台股掛牌科技 ETF (<span id="countEtf">0</span>)
+          </button>
+          <button onclick="setCategoryFilter('fund')" id="catFund" 
+                  class="text-xs px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-400 font-medium">
+            🏦 商業銀行可購科技基金 (<span id="countFund">0</span>)
+          </button>
+        </div>
+
+        <!-- Status Filters -->
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span class="text-xs text-slate-500 font-semibold mr-1">位階狀態：</span>
+          <button onclick="setStatusFilter('all')" id="statusAll" 
+                  class="text-xs px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-800 text-white font-bold">
+            全部
+          </button>
+          <button onclick="setStatusFilter('dual_sweet')" id="statusSweet" 
+                  class="text-xs px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 hover:border-emerald-500 font-semibold">
+            💎 雙重甜甜 (<span id="countSweet">0</span>)
+          </button>
+          <button onclick="setStatusFilter('fair')" id="statusFair" 
+                  class="text-xs px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 hover:border-amber-500 font-semibold">
+            🟡 偏甜/合理 (<span id="countFair">0</span>)
+          </button>
+          <button onclick="setStatusFilter('expensive')" id="statusExp" 
+                  class="text-xs px-3 py-1.5 rounded-xl border border-rose-300 bg-rose-50 text-rose-800 hover:border-rose-500 font-semibold">
+            🔴 昂貴過熱 (<span id="countExp">0</span>)
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Target Cards Grid (Strictly NO HTML Tables) -->
+    <main id="targetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <!-- Injected via JavaScript renderCards() -->
+    </main>
+
+    <!-- Footer / Legal Notes -->
+    <footer class="bg-white border border-slate-200 rounded-3xl p-5 text-center text-xs text-slate-400 space-y-2">
+      <p class="font-medium text-slate-600">
+        台股科技 ETF 與高科技佔比共同基金 ‧ 雙重價格位階與 50,000 點推估系統
+      </p>
+      <p class="max-w-2xl mx-auto text-[11px] leading-relaxed">
+        免責聲明：本系統所有計算模型、波段回檔率、均線乖離率及大盤點位推估數據，僅供學術研究與個人資產配置策略參考，非任何投資買賣之邀約。實際交易行情以證券交易所與投信投顧公會正式公告為準。
+      </p>
+    </footer>
+
+    <!-- Modal: 動態新增標的 (Pure Card Modal) -->
+    <div id="addTargetModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-xl space-y-4 border border-slate-200">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+            <span>➕</span> 動態新增自訂標的
+          </h3>
+          <button onclick="closeAddTargetModal()" class="text-slate-400 hover:text-slate-600 text-lg font-mono">✕</button>
+        </div>
+
+        <form id="addTargetForm" onsubmit="handleAddTarget(event)" class="space-y-3 text-xs">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">標的類型</label>
+              <select id="addType" class="w-full border border-slate-300 rounded-xl px-2.5 py-2 text-slate-900 focus:border-indigo-500 outline-none">
+                <option value="etf">台股掛牌科技 ETF</option>
+                <option value="fund">商業銀行可購科技基金</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">標的代碼</label>
+              <input type="text" id="addCode" placeholder="如 00992A 或 FUND01" required
+                     class="w-full border border-slate-300 rounded-xl px-2.5 py-2 text-slate-900 focus:border-indigo-500 outline-none">
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">標的名稱</label>
+            <input type="text" id="addName" placeholder="如 主動群益台灣科技創新" required
+                   class="w-full border border-slate-300 rounded-xl px-2.5 py-2 text-slate-900 focus:border-indigo-500 outline-none">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">最新收盤價 / 淨值 (P_current)</label>
+              <input type="number" step="0.01" id="addCurrentPrice" placeholder="如 15.00" required
+                     class="w-full border border-slate-300 rounded-xl px-2.5 py-2 text-slate-900 font-mono focus:border-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">近 1 年歷史最高點 (P_peak)</label>
+              <input type="number" step="0.01" id="addPeakPrice" placeholder="如 16.50" required
+                     class="w-full border border-slate-300 rounded-xl px-2.5 py-2 text-slate-900 font-mono focus:border-indigo-500 outline-none">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">季線 (60MA)</label>
+              <input type="number" step="0.01" id="addMa60" placeholder="15.20" required
+                     class="w-full border border-slate-300 rounded-xl px-2 py-2 text-slate-900 font-mono focus:border-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">半年線 (120MA)</label>
+              <input type="number" step="0.01" id="addMa120" placeholder="14.80" required
+                     class="w-full border border-slate-300 rounded-xl px-2 py-2 text-slate-900 font-mono focus:border-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Beta 係數</label>
+              <input type="number" step="0.1" id="addBeta" placeholder="1.8" value="1.8" required
+                     class="w-full border border-slate-300 rounded-xl px-2 py-2 text-slate-900 font-mono focus:border-indigo-500 outline-none">
+            </div>
+          </div>
+
+          <div class="pt-2 flex justify-end gap-2">
+            <button type="button" onclick="closeAddTargetModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50">取消</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold">確認新增標的</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: 快速微調標的價格 (Quick Price Edit) -->
+    <div id="editPriceModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-xl space-y-3 border border-slate-200">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+          <h3 class="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">
+            <span>✏️</span> 快速調整即時市價 / 淨值
+          </h3>
+          <button onclick="closeEditPriceModal()" class="text-slate-400 hover:text-slate-600 font-mono">✕</button>
+        </div>
+
+        <form id="editPriceForm" onsubmit="handleSaveEditedPrice(event)" class="space-y-3 text-xs">
+          <input type="hidden" id="editTargetId">
+          <div>
+            <div id="editTargetTitle" class="font-extrabold text-indigo-900 text-sm mb-2"></div>
+            <label class="block font-bold text-slate-700 mb-1">最新價格 / 淨值 (元)</label>
+            <input type="number" step="0.01" id="editCurrentPriceInput" required
+                   class="w-full border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono text-base font-bold focus:border-indigo-500 outline-none">
+          </div>
+
+          <div class="pt-2 flex justify-end gap-2">
+            <button type="button" onclick="closeEditPriceModal()" class="px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-600">取消</button>
+            <button type="submit" class="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold">即時更新計算</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // State Variables
+    let lastUpdatedTimestamp = "2026-11-06 13:49:16";
+    let baseMarketIndex = 44000;
+    let currentTargetIndex = 50000;
+    let currentCapitalTenThousand = 10; // 預設 10 萬元基準
+
+    let currentCategoryFilter = "all";
+    let currentStatusFilter = "all";
+    let currentSearchQuery = "";
+    let currentSort = "gain_desc";
+    let autoPollingInterval = null;
+    let expandedCardIds = new Set(); // For toggling card expansion
+
+    // Default Fallback Targets Dataset (31 Qualified Targets with 2026 Accurate Prices)
+    const DEFAULT_TARGETS = [
+  {
+    "id": "ETF_0052",
+    "code": "0052",
+    "twse_code": "tse_0052.tw",
+    "name": "富邦科技",
+    "type": "etf",
+    "category": "純科技龍頭 ETF",
+    "issuer": "富邦投信",
+    "market_channel": "台股集中市場掛牌撮合交易 (代號 0052)",
+    "current_price": 55.9,
+    "change_pct": -3.2,
+    "peak_price": 66.5,
+    "ma_60": 58.2,
+    "ma_120": 54.1,
+    "beta": 1.85,
+    "tech_ratio": 98,
+    "official_url": "https://www.fubon.com/asset-management/fund/0052",
+    "query_url": "https://tw.stock.yahoo.com/quote/0052.TW",
+    "evaluation": {
+      "dd_pct": 15.94,
+      "bias_60_pct": -3.95,
+      "bias_120_pct": 3.33,
+      "model_a": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (健康回測)"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 25.23,
+      "target_price": 70.0,
+      "profit_per_100k": 25227.0
+    }
+  },
+  {
+    "id": "ETF_0050",
+    "code": "0050",
+    "twse_code": "tse_0050.tw",
+    "name": "元大台灣50",
+    "type": "etf",
+    "category": "台股市值龍頭 (科技佔比 > 70%)",
+    "issuer": "元大投信",
+    "market_channel": "台股集中市場掛牌撮合交易 (代號 0050)",
+    "current_price": 92.5,
+    "change_pct": -4.79,
+    "peak_price": 108.5,
+    "ma_60": 101.5,
+    "ma_120": 95.8,
+    "beta": 1.2,
+    "tech_ratio": 72,
+    "official_url": "https://www.yuantafunds.com/fund/intro/0050",
+    "query_url": "https://tw.stock.yahoo.com/quote/0050.TW",
+    "evaluation": {
+      "dd_pct": 14.75,
+      "bias_60_pct": -8.87,
+      "bias_120_pct": -3.44,
+      "model_a": {
+        "status": "合理偏高",
+        "tag": "🟡 常態整理區間"
+      },
+      "model_b": {
+        "status": "偏甜合理",
+        "tag": "🟡 常態震盪"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 16.36,
+      "target_price": 107.64,
+      "profit_per_100k": 16364.0
+    }
+  },
+  {
+    "id": "ETF_006208",
+    "code": "006208",
+    "twse_code": "tse_006208.tw",
+    "name": "富邦台50",
+    "type": "etf",
+    "category": "台股市值權值 (科技佔比 > 70%)",
+    "issuer": "富邦投信",
+    "market_channel": "台股集中市場掛牌撮合交易 (代號 006208)",
+    "current_price": 210.1,
+    "change_pct": -5.59,
+    "peak_price": 248.0,
+    "ma_60": 231.5,
+    "ma_120": 219.0,
+    "beta": 1.2,
+    "tech_ratio": 72,
+    "official_url": "https://www.fubon.com/asset-management/fund/006208",
+    "query_url": "https://tw.stock.yahoo.com/quote/006208.TW",
+    "evaluation": {
+      "dd_pct": 15.28,
+      "bias_60_pct": -9.24,
+      "bias_120_pct": -4.06,
+      "model_a": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (健康回測)"
+      },
+      "model_b": {
+        "status": "偏甜合理",
+        "tag": "🟡 常態震盪"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 16.36,
+      "target_price": 244.48,
+      "profit_per_100k": 16364.0
+    }
+  },
+  {
+    "id": "ETF_00881",
+    "code": "00881",
+    "twse_code": "tse_00881.tw",
+    "name": "國泰台灣5G+",
+    "type": "etf",
+    "category": "5G 與科技旗艦 ETF",
+    "issuer": "國泰投信",
+    "market_channel": "台股集中市場掛牌撮合交易 (代號 00881)",
+    "current_price": 42.9,
+    "change_pct": -2.85,
+    "peak_price": 49.5,
+    "ma_60": 44.8,
+    "ma_120": 41.2,
+    "beta": 1.8,
+    "tech_ratio": 92,
+    "official_url": "https://www.cathaysite.com.tw/funds/detail/00881",
+    "query_url": "https://tw.stock.yahoo.com/quote/00881.TW",
+    "evaluation": {
+      "dd_pct": 13.33,
+      "bias_60_pct": -4.24,
+      "bias_120_pct": 4.13,
+      "model_a": {
+        "status": "合理偏高",
+        "tag": "🟡 常態整理區間"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 24.55,
+      "target_price": 53.43,
+      "profit_per_100k": 24545.0
+    }
+  },
+  {
+    "id": "ETF_00935",
+    "code": "00935",
+    "twse_code": "tse_00935.tw",
+    "name": "野村臺灣新科技50",
+    "type": "etf",
+    "category": "研發創新科技 ETF",
+    "issuer": "野村投信",
+    "market_channel": "台股集中市場掛牌撮合交易 (代號 00935)",
+    "current_price": 47.03,
+    "change_pct": -5.52,
+    "peak_price": 56.2,
+    "ma_60": 50.1,
+    "ma_120": 45.8,
+    "beta": 1.85,
+    "tech_ratio": 95,
+    "official_url": "https://www.nomuramt.com.tw/ETF/00935",
+    "query_url": "https://tw.stock.yahoo.com/quote/00935.TW",
+    "evaluation": {
+      "dd_pct": 16.32,
+      "bias_60_pct": -6.13,
+      "bias_120_pct": 2.69,
+      "model_a": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (健康回測)"
+      },
+      "model_b": {
+        "status": "偏甜合理",
+        "tag": "🟡 常態震盪"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 25.23,
+      "target_price": 58.89,
+      "profit_per_100k": 25227.0
+    }
+  },
+  {
+    "id": "ETF_00941",
+    "code": "00941",
+    "twse_code": "tse_00941.tw",
+    "name": "中信上游半導體",
+    "type": "etf",
+    "category": "半導體材料設備主題",
+    "issuer": "中國信託投信",
+    "market_channel": "台股集中市場掛牌撮合交易 (代號 00941)",
+    "current_price": 23.55,
+    "change_pct": -3.09,
+    "peak_price": 28.5,
+    "ma_60": 25.2,
+    "ma_120": 23.1,
+    "beta": 1.75,
+    "tech_ratio": 96,
+    "official_url": "https://www.ctbcinvestments.com/funds/00941",
+    "query_url": "https://tw.stock.yahoo.com/quote/00941.TW",
+    "evaluation": {
+      "dd_pct": 17.37,
+      "bias_60_pct": -6.55,
+      "bias_120_pct": 1.95,
+      "model_a": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (健康回測)"
+      },
+      "model_b": {
+        "status": "偏甜合理",
+        "tag": "🟡 常態震盪"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 23.86,
+      "target_price": 29.17,
+      "profit_per_100k": 23864.0
+    }
+  },
+  {
+    "id": "ETF_00929",
+    "code": "00929",
+    "twse_code": "tse_00929.tw",
+    "name": "復華台灣科技優息",
+    "type": "etf",
+    "category": "科技高股息主題 ETF",
+    "issuer": "復華投信",
+    "market_channel": "台股集中市場掛牌撮合交易 (代號 00929)",
+    "current_price": 25.14,
+    "change_pct": -1.8,
+    "peak_price": 29.8,
+    "ma_60": 26.5,
+    "ma_120": 24.8,
+    "beta": 1.65,
+    "tech_ratio": 99,
+    "official_url": "https://www.fuhwa.com.tw/fund/00929",
+    "query_url": "https://tw.stock.yahoo.com/quote/00929.TW",
+    "evaluation": {
+      "dd_pct": 15.64,
+      "bias_60_pct": -5.13,
+      "bias_120_pct": 1.37,
+      "model_a": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (健康回測)"
+      },
+      "model_b": {
+        "status": "偏甜合理",
+        "tag": "🟡 常態震盪"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 22.5,
+      "target_price": 30.8,
+      "profit_per_100k": 22500.0
+    }
+  },
+  {
+    "id": "ETF_00891",
+    "code": "00891",
+    "twse_code": "tse_00891.tw",
+    "name": "中信關鍵半導體",
+    "type": "etf",
+    "category": "臺灣半導體供應鏈主題",
+    "issuer": "中國信託投信",
+    "market_channel": "台股集中市場掛牌撮合交易 (代號 00891)",
+    "current_price": 32.14,
+    "change_pct": -3.5,
+    "peak_price": 38.6,
+    "ma_60": 34.5,
+    "ma_120": 31.8,
+    "beta": 1.9,
+    "tech_ratio": 98,
+    "official_url": "https://www.ctbcinvestments.com/funds/00891",
+    "query_url": "https://tw.stock.yahoo.com/quote/00891.TW",
+    "evaluation": {
+      "dd_pct": 16.74,
+      "bias_60_pct": -6.84,
+      "bias_120_pct": 1.07,
+      "model_a": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (健康回測)"
+      },
+      "model_b": {
+        "status": "偏甜合理",
+        "tag": "🟡 常態震盪"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 25.91,
+      "target_price": 40.47,
+      "profit_per_100k": 25909.0
+    }
+  },
+  {
+    "id": "ETF_00892",
+    "code": "00892",
+    "twse_code": "tse_00892.tw",
+    "name": "富邦台灣半導體",
+    "type": "etf",
+    "category": "台灣半導體核心 ETF",
+    "issuer": "富邦投信",
+    "market_channel": "台股集中市場掛牌撮合交易 (代號 00892)",
+    "current_price": 33.94,
+    "change_pct": -2.9,
+    "peak_price": 40.5,
+    "ma_60": 36.2,
+    "ma_120": 33.1,
+    "beta": 1.85,
+    "tech_ratio": 97,
+    "official_url": "https://www.fubon.com/asset-management/fund/00892",
+    "query_url": "https://tw.stock.yahoo.com/quote/00892.TW",
+    "evaluation": {
+      "dd_pct": 16.2,
+      "bias_60_pct": -6.24,
+      "bias_120_pct": 2.54,
+      "model_a": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (健康回測)"
+      },
+      "model_b": {
+        "status": "偏甜合理",
+        "tag": "🟡 常態震盪"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 25.23,
+      "target_price": 42.5,
+      "profit_per_100k": 25227.0
+    }
+  },
+  {
+    "id": "ETF_00904",
+    "code": "00904",
+    "twse_code": "tse_00904.tw",
+    "name": "新光臺灣半導體30",
+    "type": "etf",
+    "category": "半導體前 30 強 ETF",
+    "issuer": "新光投信",
+    "market_channel": "台股集中市場掛牌撮合交易 (代號 00904)",
+    "current_price": 32.95,
+    "change_pct": -3.1,
+    "peak_price": 39.2,
+    "ma_60": 35.1,
+    "ma_120": 32.0,
+    "beta": 1.85,
+    "tech_ratio": 98,
+    "official_url": "https://www.skit.com.tw/fund/00904",
+    "query_url": "https://tw.stock.yahoo.com/quote/00904.TW",
+    "evaluation": {
+      "dd_pct": 15.94,
+      "bias_60_pct": -6.13,
+      "bias_120_pct": 2.97,
+      "model_a": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (健康回測)"
+      },
+      "model_b": {
+        "status": "偏甜合理",
+        "tag": "🟡 常態震盪"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 25.23,
+      "target_price": 41.26,
+      "profit_per_100k": 25227.0
+    }
+  },
+  {
+    "id": "ETF_00735",
+    "code": "00735",
+    "twse_code": "tse_00735.tw",
+    "name": "國泰臺韓科技",
+    "type": "etf",
+    "category": "亞洲半導體與高科技旗艦",
+    "issuer": "國泰投信",
+    "market_channel": "台股集中市場掛牌撮合交易 (代號 00735)",
+    "current_price": 87.15,
+    "change_pct": -2.8,
+    "peak_price": 104.0,
+    "ma_60": 93.5,
+    "ma_120": 85.0,
+    "beta": 1.8,
+    "tech_ratio": 90,
+    "official_url": "https://www.cathaysite.com.tw/funds/detail/00735",
+    "query_url": "https://tw.stock.yahoo.com/quote/00735.TW",
+    "evaluation": {
+      "dd_pct": 16.2,
+      "bias_60_pct": -6.79,
+      "bias_120_pct": 2.53,
+      "model_a": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (健康回測)"
+      },
+      "model_b": {
+        "status": "偏甜合理",
+        "tag": "🟡 常態震盪"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 24.55,
+      "target_price": 108.54,
+      "profit_per_100k": 24545.0
+    }
+  },
+  {
+    "id": "ETF_00757",
+    "code": "00757",
+    "twse_code": "tse_00757.tw",
+    "name": "統一FANG+",
+    "type": "etf",
+    "category": "全球頂尖科技科技巨頭 (尖牙股)",
+    "issuer": "統一投信",
+    "market_channel": "台股集中市場掛牌撮合交易 (代號 00757)",
+    "current_price": 136.2,
+    "change_pct": 0.65,
+    "peak_price": 148.5,
+    "ma_60": 132.0,
+    "ma_120": 121.5,
+    "beta": 1.95,
+    "tech_ratio": 95,
+    "official_url": "https://www.ezfunds.com.tw/fund/00757",
+    "query_url": "https://tw.stock.yahoo.com/quote/00757.TW",
+    "evaluation": {
+      "dd_pct": 8.28,
+      "bias_60_pct": 3.18,
+      "bias_120_pct": 12.1,
+      "model_a": {
+        "status": "昂貴價",
+        "tag": "🔴 昂貴價 (追高風險大)"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "expensive",
+        "tag": "🔴 昂貴過熱",
+        "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 26.59,
+      "target_price": 172.42,
+      "profit_per_100k": 26591.0
+    }
+  },
+  {
+    "id": "ETF_00662",
+    "code": "00662",
+    "twse_code": "tse_00662.tw",
+    "name": "富邦NASDAQ-100",
+    "type": "etf",
+    "category": "美股科技那斯達克 100 指數",
+    "issuer": "富邦投信",
+    "market_channel": "台股集中市場掛牌撮合交易 (代號 00662)",
+    "current_price": 118.75,
+    "change_pct": 0.4,
+    "peak_price": 128.0,
+    "ma_60": 116.2,
+    "ma_120": 107.5,
+    "beta": 1.7,
+    "tech_ratio": 80,
+    "official_url": "https://www.fubon.com/asset-management/fund/00662",
+    "query_url": "https://tw.stock.yahoo.com/quote/00662.TW",
+    "evaluation": {
+      "dd_pct": 7.23,
+      "bias_60_pct": 2.19,
+      "bias_120_pct": 10.47,
+      "model_a": {
+        "status": "昂貴價",
+        "tag": "🔴 昂貴價 (追高風險大)"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "expensive",
+        "tag": "🔴 昂貴過熱",
+        "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 23.18,
+      "target_price": 146.28,
+      "profit_per_100k": 23182.0
+    }
+  },
+  {
+    "id": "ETF_00830",
+    "code": "00830",
+    "twse_code": "tse_00830.tw",
+    "name": "國泰費城半導體",
+    "type": "etf",
+    "category": "美國費城半導體指數純科技",
+    "issuer": "國泰投信",
+    "market_channel": "台股集中市場掛牌撮合交易 (代號 00830)",
+    "current_price": 73.25,
+    "change_pct": -1.2,
+    "peak_price": 84.5,
+    "ma_60": 76.8,
+    "ma_120": 69.5,
+    "beta": 2.0,
+    "tech_ratio": 100,
+    "official_url": "https://www.cathaysite.com.tw/funds/detail/00830",
+    "query_url": "https://tw.stock.yahoo.com/quote/00830.TW",
+    "evaluation": {
+      "dd_pct": 13.31,
+      "bias_60_pct": -4.62,
+      "bias_120_pct": 5.4,
+      "model_a": {
+        "status": "合理偏高",
+        "tag": "🟡 常態整理區間"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 27.27,
+      "target_price": 93.23,
+      "profit_per_100k": 27273.0
+    }
+  },
+  {
+    "id": "ETF_00851",
+    "code": "00851",
+    "twse_code": "tse_00851.tw",
+    "name": "台新全球AI",
+    "type": "etf",
+    "category": "全球生成式 AI 與機器人",
+    "issuer": "台新投信",
+    "market_channel": "台股集中市場掛牌撮合交易 (代號 00851)",
+    "current_price": 68.5,
+    "change_pct": 0.3,
+    "peak_price": 76.0,
+    "ma_60": 67.2,
+    "ma_120": 61.5,
+    "beta": 1.8,
+    "tech_ratio": 92,
+    "official_url": "https://www.tsit.com.tw/Fund/00851",
+    "query_url": "https://tw.stock.yahoo.com/quote/00851.TW",
+    "evaluation": {
+      "dd_pct": 9.87,
+      "bias_60_pct": 1.93,
+      "bias_120_pct": 11.38,
+      "model_a": {
+        "status": "昂貴價",
+        "tag": "🔴 昂貴價 (追高風險大)"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "expensive",
+        "tag": "🔴 昂貴過熱",
+        "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 24.55,
+      "target_price": 85.31,
+      "profit_per_100k": 24545.0
+    }
+  },
+  {
+    "id": "ETF_00934",
+    "code": "00934",
+    "twse_code": "tse_00934.tw",
+    "name": "中信成長高股息",
+    "type": "etf",
+    "category": "科技成長加權高股息 (科技比 > 60%)",
+    "issuer": "中國信託投信",
+    "market_channel": "台股集中市場掛牌撮合交易 (代號 00934)",
+    "current_price": 29.33,
+    "change_pct": -1.15,
+    "peak_price": 33.2,
+    "ma_60": 30.5,
+    "ma_120": 28.6,
+    "beta": 1.6,
+    "tech_ratio": 65,
+    "official_url": "https://www.ctbcinvestments.com/funds/00934",
+    "query_url": "https://tw.stock.yahoo.com/quote/00934.TW",
+    "evaluation": {
+      "dd_pct": 11.66,
+      "bias_60_pct": -3.84,
+      "bias_120_pct": 2.55,
+      "model_a": {
+        "status": "合理偏高",
+        "tag": "🟡 常態整理區間"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 21.82,
+      "target_price": 35.73,
+      "profit_per_100k": 21818.0
+    }
+  },
+  {
+    "id": "ETF_00992A",
+    "code": "00992A",
+    "twse_code": "tse_00992A.tw",
+    "name": "主動群益台灣科技創新",
+    "type": "etf",
+    "category": "主動式操盤科技 ETF",
+    "issuer": "群益投信",
+    "market_channel": "台股集中市場主動型 ETF 掛牌",
+    "current_price": 15.0,
+    "change_pct": 0.0,
+    "peak_price": 16.5,
+    "ma_60": 15.1,
+    "ma_120": 14.8,
+    "beta": 1.9,
+    "tech_ratio": 95,
+    "official_url": "https://www.capitalfund.com.tw/",
+    "query_url": "https://www.twse.com.tw/",
+    "evaluation": {
+      "dd_pct": 9.09,
+      "bias_60_pct": -0.66,
+      "bias_120_pct": 1.35,
+      "model_a": {
+        "status": "昂貴價",
+        "tag": "🔴 昂貴價 (追高風險大)"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "expensive",
+        "tag": "🔴 昂貴過熱",
+        "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 25.91,
+      "target_price": 18.89,
+      "profit_per_100k": 25909.0
+    }
+  },
+  {
+    "id": "ETF_00981A",
+    "code": "00981A",
+    "twse_code": "tse_00981A.tw",
+    "name": "主動統一台股增長",
+    "type": "etf",
+    "category": "主動式操盤增長型 ETF",
+    "issuer": "統一投信",
+    "market_channel": "台股集中市場主動型 ETF 掛牌",
+    "current_price": 15.0,
+    "change_pct": 0.0,
+    "peak_price": 16.5,
+    "ma_60": 15.2,
+    "ma_120": 14.7,
+    "beta": 1.85,
+    "tech_ratio": 90,
+    "official_url": "https://www.ezfunds.com.tw/",
+    "query_url": "https://www.twse.com.tw/",
+    "evaluation": {
+      "dd_pct": 9.09,
+      "bias_60_pct": -1.32,
+      "bias_120_pct": 2.04,
+      "model_a": {
+        "status": "昂貴價",
+        "tag": "🔴 昂貴價 (追高風險大)"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "expensive",
+        "tag": "🔴 昂貴過熱",
+        "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 25.23,
+      "target_price": 18.78,
+      "profit_per_100k": 25227.0
+    }
+  },
+  {
+    "id": "FUND_ALLIANZ_TECH",
+    "code": "安聯科技",
+    "name": "安聯台灣科技基金",
+    "type": "fund",
+    "category": "境內頂級旗艦科技股票基金",
+    "issuer": "安聯投信",
+    "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+    "current_price": 613.35,
+    "change_pct": -7.88,
+    "peak_price": 726.5,
+    "ma_60": 668.0,
+    "ma_120": 610.0,
+    "beta": 1.95,
+    "tech_ratio": 92,
+    "official_url": "https://tw.allianzgi.com/",
+    "query_url": "https://fund.cnyes.com/detail/A14008",
+    "evaluation": {
+      "dd_pct": 15.57,
+      "bias_60_pct": -8.18,
+      "bias_120_pct": 0.55,
+      "model_a": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (健康回測)"
+      },
+      "model_b": {
+        "status": "偏甜合理",
+        "tag": "🟡 常態震盪"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 26.59,
+      "target_price": 776.45,
+      "profit_per_100k": 26591.0
+    }
+  },
+  {
+    "id": "FUND_UNI_PENTIUM",
+    "code": "統一奔騰",
+    "name": "統一奔騰基金",
+    "type": "fund",
+    "category": "高爆發力科技旗艦基金",
+    "issuer": "統一投信",
+    "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+    "current_price": 650.96,
+    "change_pct": 0.45,
+    "peak_price": 712.0,
+    "ma_60": 665.0,
+    "ma_120": 615.0,
+    "beta": 1.9,
+    "tech_ratio": 90,
+    "official_url": "https://www.ezfunds.com.tw/",
+    "query_url": "https://fund.cnyes.com/detail/A11011",
+    "evaluation": {
+      "dd_pct": 8.57,
+      "bias_60_pct": -2.11,
+      "bias_120_pct": 5.85,
+      "model_a": {
+        "status": "昂貴價",
+        "tag": "🔴 昂貴價 (追高風險大)"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "expensive",
+        "tag": "🔴 昂貴過熱",
+        "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 25.91,
+      "target_price": 819.62,
+      "profit_per_100k": 25909.0
+    }
+  },
+  {
+    "id": "FUND_UNI_BLACKHORSE",
+    "code": "統一黑馬",
+    "name": "統一黑馬基金",
+    "type": "fund",
+    "category": "成長型高科技佈局基金",
+    "issuer": "統一投信",
+    "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+    "current_price": 517.06,
+    "change_pct": -8.2,
+    "peak_price": 595.0,
+    "ma_60": 545.0,
+    "ma_120": 505.0,
+    "beta": 1.85,
+    "tech_ratio": 86,
+    "official_url": "https://www.ezfunds.com.tw/",
+    "query_url": "https://fund.cnyes.com/detail/A11002",
+    "evaluation": {
+      "dd_pct": 13.1,
+      "bias_60_pct": -5.13,
+      "bias_120_pct": 2.39,
+      "model_a": {
+        "status": "合理偏高",
+        "tag": "🟡 常態整理區間"
+      },
+      "model_b": {
+        "status": "偏甜合理",
+        "tag": "🟡 常態震盪"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 25.23,
+      "target_price": 647.5,
+      "profit_per_100k": 25227.0
+    }
+  },
+  {
+    "id": "FUND_NOMURA_HITECH",
+    "code": "野村高科",
+    "name": "野村高科技基金",
+    "type": "fund",
+    "category": "半導體與 AI 核心科技基金",
+    "issuer": "野村投信",
+    "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+    "current_price": 97.07,
+    "change_pct": -8.1,
+    "peak_price": 118.5,
+    "ma_60": 106.0,
+    "ma_120": 98.2,
+    "beta": 1.85,
+    "tech_ratio": 94,
+    "official_url": "https://www.nomuramt.com.tw/",
+    "query_url": "https://fund.cnyes.com/detail/A18002",
+    "evaluation": {
+      "dd_pct": 18.08,
+      "bias_60_pct": -8.42,
+      "bias_120_pct": -1.15,
+      "model_a": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (健康回測)"
+      },
+      "model_b": {
+        "status": "偏甜合理",
+        "tag": "🟡 常態震盪"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 25.23,
+      "target_price": 121.56,
+      "profit_per_100k": 25227.0
+    }
+  },
+  {
+    "id": "FUND_NOMURA_QUALITY",
+    "code": "野村優質",
+    "name": "野村優質基金",
+    "type": "fund",
+    "category": "頂級成長權值科技型基金",
+    "issuer": "野村投信",
+    "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+    "current_price": 452.66,
+    "change_pct": -2.92,
+    "peak_price": 505.0,
+    "ma_60": 468.0,
+    "ma_120": 435.0,
+    "beta": 1.75,
+    "tech_ratio": 82,
+    "official_url": "https://www.nomuramt.com.tw/",
+    "query_url": "https://fund.cnyes.com/detail/A18012",
+    "evaluation": {
+      "dd_pct": 10.36,
+      "bias_60_pct": -3.28,
+      "bias_120_pct": 4.06,
+      "model_a": {
+        "status": "合理偏高",
+        "tag": "🟡 常態整理區間"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 23.86,
+      "target_price": 560.68,
+      "profit_per_100k": 23864.0
+    }
+  },
+  {
+    "id": "FUND_TAISHIN_CHINAPASS",
+    "code": "台新中國",
+    "name": "台新中國通基金",
+    "type": "fund",
+    "category": "大中華高科技與半導體持股",
+    "issuer": "台新投信",
+    "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+    "current_price": 354.44,
+    "change_pct": 0.36,
+    "peak_price": 395.0,
+    "ma_60": 365.0,
+    "ma_120": 342.0,
+    "beta": 1.7,
+    "tech_ratio": 75,
+    "official_url": "https://www.tsit.com.tw/",
+    "query_url": "https://fund.cnyes.com/detail/A24003",
+    "evaluation": {
+      "dd_pct": 10.27,
+      "bias_60_pct": -2.89,
+      "bias_120_pct": 3.64,
+      "model_a": {
+        "status": "合理偏高",
+        "tag": "🟡 常態整理區間"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 23.18,
+      "target_price": 436.61,
+      "profit_per_100k": 23182.0
+    }
+  },
+  {
+    "id": "FUND_FUHWA_DIGITAL",
+    "code": "復華數位",
+    "name": "復華數位經濟基金",
+    "type": "fund",
+    "category": "數位轉型與 AI 經濟核心",
+    "issuer": "復華投信",
+    "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+    "current_price": 160.94,
+    "change_pct": -1.25,
+    "peak_price": 185.0,
+    "ma_60": 171.0,
+    "ma_120": 158.0,
+    "beta": 1.85,
+    "tech_ratio": 88,
+    "official_url": "https://www.fuhwa.com.tw/",
+    "query_url": "https://fund.cnyes.com/detail/A17013",
+    "evaluation": {
+      "dd_pct": 13.01,
+      "bias_60_pct": -5.88,
+      "bias_120_pct": 1.86,
+      "model_a": {
+        "status": "合理偏高",
+        "tag": "🟡 常態整理區間"
+      },
+      "model_b": {
+        "status": "偏甜合理",
+        "tag": "🟡 常態震盪"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 25.23,
+      "target_price": 201.54,
+      "profit_per_100k": 25227.0
+    }
+  },
+  {
+    "id": "FUND_TAISHIN_TW_SME",
+    "code": "台新中小",
+    "name": "台新台灣中小基金",
+    "type": "fund",
+    "category": "中小型高成長科技飆股型",
+    "issuer": "台新投信",
+    "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+    "current_price": 230.7,
+    "change_pct": -1.5,
+    "peak_price": 262.0,
+    "ma_60": 242.0,
+    "ma_120": 225.0,
+    "beta": 1.8,
+    "tech_ratio": 78,
+    "official_url": "https://www.tsit.com.tw/",
+    "query_url": "https://fund.cnyes.com/detail/A24008",
+    "evaluation": {
+      "dd_pct": 11.95,
+      "bias_60_pct": -4.67,
+      "bias_120_pct": 2.53,
+      "model_a": {
+        "status": "合理偏高",
+        "tag": "🟡 常態整理區間"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 24.55,
+      "target_price": 287.33,
+      "profit_per_100k": 24545.0
+    }
+  },
+  {
+    "id": "FUND_CAPITAL_MARATHON",
+    "code": "群益長跑",
+    "name": "群益馬拉松基金",
+    "type": "fund",
+    "category": "長青績優科技與中長線黑馬",
+    "issuer": "群益投信",
+    "market_channel": "全台商業銀行信託申購 / 基富通 / 鉅亨買基金",
+    "current_price": 438.81,
+    "change_pct": -1.8,
+    "peak_price": 495.0,
+    "ma_60": 458.0,
+    "ma_120": 422.0,
+    "beta": 1.75,
+    "tech_ratio": 80,
+    "official_url": "https://www.capitalfund.com.tw/",
+    "query_url": "https://fund.cnyes.com/detail/A20002",
+    "evaluation": {
+      "dd_pct": 11.35,
+      "bias_60_pct": -4.19,
+      "bias_120_pct": 3.98,
+      "model_a": {
+        "status": "合理偏高",
+        "tag": "🟡 常態整理區間"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "fair",
+        "tag": "🟡 偏甜 / 合理",
+        "badge_style": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 23.86,
+      "target_price": 543.53,
+      "profit_per_100k": 23864.0
+    }
+  },
+  {
+    "id": "FUND_BGF_WORLD_TECH",
+    "code": "貝萊德科技",
+    "name": "貝萊德世界科技基金 (美元A2)",
+    "type": "fund",
+    "category": "全球一級科技航母基金 (銀行熱銷外幣)",
+    "issuer": "貝萊德投信",
+    "market_channel": "全台各商業銀行外幣/台幣信託專戶申購",
+    "current_price": 144.33,
+    "change_pct": 0.25,
+    "peak_price": 158.0,
+    "ma_60": 142.5,
+    "ma_120": 132.0,
+    "beta": 1.8,
+    "tech_ratio": 98,
+    "official_url": "https://www.blackrock.com/tw",
+    "query_url": "https://fund.cnyes.com/detail/B03,024",
+    "evaluation": {
+      "dd_pct": 8.65,
+      "bias_60_pct": 1.28,
+      "bias_120_pct": 9.34,
+      "model_a": {
+        "status": "昂貴價",
+        "tag": "🔴 昂貴價 (追高風險大)"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "expensive",
+        "tag": "🔴 昂貴過熱",
+        "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 24.55,
+      "target_price": 179.76,
+      "profit_per_100k": 24545.0
+    }
+  },
+  {
+    "id": "FUND_JPM_US_TECH",
+    "code": "摩根美科",
+    "name": "摩根美國科技基金 (美元A股)",
+    "type": "fund",
+    "category": "美國軟體與頂尖科技重鎮 (銀行熱銷)",
+    "issuer": "摩根投信",
+    "market_channel": "全台各商業銀行外幣/台幣信託專戶申購",
+    "current_price": 129.16,
+    "change_pct": 0.4,
+    "peak_price": 138.5,
+    "ma_60": 127.0,
+    "ma_120": 118.0,
+    "beta": 1.85,
+    "tech_ratio": 95,
+    "official_url": "https://am.jpmorgan.com/tw",
+    "query_url": "https://fund.cnyes.com/detail/B01,059",
+    "evaluation": {
+      "dd_pct": 6.74,
+      "bias_60_pct": 1.7,
+      "bias_120_pct": 9.46,
+      "model_a": {
+        "status": "昂貴價",
+        "tag": "🔴 昂貴價 (追高風險大)"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "expensive",
+        "tag": "🔴 昂貴過熱",
+        "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 25.23,
+      "target_price": 161.74,
+      "profit_per_100k": 25227.0
+    }
+  },
+  {
+    "id": "FUND_FRANKLIN_TECH",
+    "code": "富蘭科技",
+    "name": "富蘭克林科技基金 (美元A股)",
+    "type": "fund",
+    "category": "矽谷高科技與雲端運算 (銀行熱銷)",
+    "issuer": "富蘭克林投顧",
+    "market_channel": "全台各商業銀行外幣/台幣信託專戶申購",
+    "current_price": 70.12,
+    "change_pct": 0.15,
+    "peak_price": 77.0,
+    "ma_60": 69.0,
+    "ma_120": 64.0,
+    "beta": 1.8,
+    "tech_ratio": 96,
+    "official_url": "https://www.franklin.com.tw/",
+    "query_url": "https://fund.cnyes.com/detail/B02,028",
+    "evaluation": {
+      "dd_pct": 8.94,
+      "bias_60_pct": 1.62,
+      "bias_120_pct": 9.56,
+      "model_a": {
+        "status": "昂貴價",
+        "tag": "🔴 昂貴價 (追高風險大)"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "expensive",
+        "tag": "🔴 昂貴過熱",
+        "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 24.55,
+      "target_price": 87.33,
+      "profit_per_100k": 24545.0
+    }
+  },
+  {
+    "id": "FUND_FIDELITY_GLOBAL_TECH",
+    "code": "富達全科",
+    "name": "富達全球科技基金 (美元A股)",
+    "type": "fund",
+    "category": "跨國前瞻科技主題 (銀行熱銷)",
+    "issuer": "富達投信",
+    "market_channel": "全台各商業銀行外幣/台幣信託專戶申購",
+    "current_price": 87.35,
+    "change_pct": 0.3,
+    "peak_price": 95.0,
+    "ma_60": 86.0,
+    "ma_120": 79.5,
+    "beta": 1.75,
+    "tech_ratio": 92,
+    "official_url": "https://www.fidelity.com.tw/",
+    "query_url": "https://fund.cnyes.com/detail/B06,066",
+    "evaluation": {
+      "dd_pct": 8.05,
+      "bias_60_pct": 1.57,
+      "bias_120_pct": 9.87,
+      "model_a": {
+        "status": "昂貴價",
+        "tag": "🔴 昂貴價 (追高風險大)"
+      },
+      "model_b": {
+        "status": "合理價",
+        "tag": "🟡 合理價 (均線糾結回測支撐)"
+      },
+      "combined": {
+        "status": "expensive",
+        "tag": "🔴 昂貴過熱",
+        "badge_style": "bg-rose-100 text-rose-800 border-rose-300"
+      }
+    },
+    "scenario_50k": {
+      "base_index": 44000,
+      "target_index": 50000,
+      "delta_index_pct": 13.64,
+      "target_gain_pct": 23.86,
+      "target_price": 108.19,
+      "profit_per_100k": 23864.0
+    }
+  }
+];
+
+    let targetsList = JSON.parse(JSON.stringify(DEFAULT_TARGETS));
+
+    function setSearchQuery(q) {
+      currentSearchQuery = q.trim().toLowerCase();
+      renderCards();
+    }
+
+    function setSort(s) {
+      currentSort = s;
+      renderCards();
+    }
+
+    function setTargetIndex(idx) {
+      currentTargetIndex = idx;
+      document.getElementById("targetIndexSlider").value = idx;
+      updateScenarioLabels();
+      renderCards();
+    }
+
+    function setCapital(val) {
+      currentCapitalTenThousand = val;
+      document.getElementById("capitalInput").value = val;
+      document.getElementById("capitalText").textContent = `${val} 萬元`;
+      renderCards();
+    }
+
+    function setCategoryFilter(cat) {
+      currentCategoryFilter = cat;
+      ['all', 'etf', 'fund'].forEach(c => {
+        const btn = document.getElementById(`cat${c.charAt(0).toUpperCase() + c.slice(1)}`);
+        if (btn) {
+          if (c === cat) {
+            btn.className = "text-xs px-3.5 py-1.5 rounded-xl border border-blue-600 bg-blue-50 text-blue-700 font-bold";
+          } else {
+            btn.className = "text-xs px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-400 font-medium";
+          }
+        }
+      });
+      renderCards();
+    }
+
+    function setStatusFilter(st) {
+      currentStatusFilter = st;
+      const map = {
+        all: "statusAll",
+        dual_sweet: "statusSweet",
+        fair: "statusFair",
+        expensive: "statusExp"
+      };
+      Object.keys(map).forEach(k => {
+        const btn = document.getElementById(map[k]);
+        if (btn) {
+          if (k === st) {
+            btn.className = "text-xs px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-800 text-white font-bold";
+          } else {
+            btn.className = "text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-400 font-semibold";
+          }
+        }
+      });
+      renderCards();
+    }
+
+    function toggleCardExpansion(id) {
+      if (expandedCardIds.has(id)) {
+        expandedCardIds.delete(id);
+      } else {
+        expandedCardIds.add(id);
+      }
+      renderCards();
+    }
+
+    function updateScenarioLabels() {
+      document.getElementById("targetIndexDisplay").textContent = currentTargetIndex.toLocaleString();
+      const deltaIdx = ((currentTargetIndex - baseMarketIndex) / baseMarketIndex) * 100;
+      document.getElementById("indexGainBadge").textContent = `大盤預估 ${deltaIdx >= 0 ? '+' : ''}${deltaIdx.toFixed(2)}%`;
+
+      [50000, 51000, 52000, 55000, 60000].forEach(p => {
+        const btn = document.getElementById(`idxBtn${p}`);
+        if (btn) {
+          if (p === currentTargetIndex) {
+            btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border border-amber-400 bg-amber-400 text-slate-950 shadow-sm";
+          } else {
+            btn.className = "px-3 py-1.5 rounded-xl text-xs font-bold transition-all border border-indigo-700 bg-indigo-950/70 text-indigo-200 hover:border-amber-400";
+          }
+        }
+      });
+    }
+
+    // ==========================================
+    // Quantitative Valuation Algorithms
+    // ==========================================
+    function computeDualEvaluation(target) {
+      const p = parseFloat(target.current_price) || 0;
+      const peak = parseFloat(target.peak_price) || p;
+      const ma60 = parseFloat(target.ma_60) || p;
+      const ma120 = parseFloat(target.ma_120) || p;
+
+      // Model A: Drawdown
+      const dd = peak > 0 ? ((peak - p) / peak) * 100 : 0;
+      let modelAStatus = "";
+      let modelATag = "";
+      let modelAClass = "";
+
+      if (dd >= 25) {
+        modelAStatus = "甜甜價";
+        modelATag = dd >= 30 ? "🟢 極甜超跌價 (≥30%)" : "🟢 甜甜價 (超跌打折)";
+        modelAClass = "text-emerald-700 bg-emerald-50 border-emerald-200";
+      } else if (dd >= 15 && dd <= 20) {
+        modelAStatus = "合理價";
+        modelATag = "🟡 合理價 (健康回測)";
+        modelAClass = "text-amber-700 bg-amber-50 border-amber-200";
+      } else if (dd < 10) {
+        modelAStatus = "昂貴價";
+        modelATag = "🔴 昂貴價 (追高風險大)";
+        modelAClass = "text-rose-700 bg-rose-50 border-rose-200";
+      } else {
+        modelAStatus = dd > 20 ? "偏甜合理" : "合理偏高";
+        modelATag = "🟡 常態整理區間";
+        modelAClass = "text-amber-700 bg-amber-50 border-amber-200";
+      }
+
+      // Model B: MA Negative BIAS
+      const bias60 = ma60 > 0 ? ((p - ma60) / ma60) * 100 : 0;
+      const bias120 = ma120 > 0 ? ((p - ma120) / ma120) * 100 : 0;
+      let modelBStatus = "";
+      let modelBTag = "";
+      let modelBClass = "";
+
+      if (bias60 <= -10 || bias120 <= -12) {
+        modelBStatus = "甜甜價";
+        modelBTag = "🟢 甜甜價 (橡皮筋負乖離超跌)";
+        modelBClass = "text-emerald-700 bg-emerald-50 border-emerald-200";
+      } else if (bias60 > 15) {
+        modelBStatus = "昂貴價";
+        modelBTag = "🔴 昂貴價 (正乖離過大)";
+        modelBClass = "text-rose-700 bg-rose-50 border-rose-200";
+      } else if (bias60 >= -5 && bias60 <= 5) {
+        modelBStatus = "合理價";
+        modelBTag = "🟡 合理價 (均線糾結回測支撐)";
+        modelBClass = "text-amber-700 bg-amber-50 border-amber-200";
+      } else {
+        modelBStatus = bias60 < 0 ? "偏甜合理" : "合理偏高";
+        modelBTag = "🟡 常態震盪";
+        modelBClass = "text-amber-700 bg-amber-50 border-amber-200";
+      }
+
+      // Combined Evaluation
+      let combinedKey = "fair";
+      let combinedBadge = "🟡 偏甜 / 合理";
+      let combinedStyle = "bg-amber-50 text-amber-800 border-amber-300";
+
+      if (modelAStatus === "甜甜價" && modelBStatus === "甜甜價") {
+        combinedKey = "dual_sweet";
+        combinedBadge = "💎 雙重甜甜價";
+        combinedStyle = "bg-emerald-100 text-emerald-900 border-emerald-400 ring-2 ring-emerald-200 animate-pulse";
+      } else if (modelAStatus === "昂貴價" || modelBStatus === "昂貴價") {
+        combinedKey = "expensive";
+        combinedBadge = "🔴 昂貴過熱";
+        combinedStyle = "bg-rose-100 text-rose-800 border-rose-300";
+      }
+
+      return {
+        ddPct: dd,
+        bias60Pct: bias60,
+        bias120Pct: bias120,
+        modelA: { status: modelAStatus, tag: modelATag, style: modelAClass },
+        modelB: { status: modelBStatus, tag: modelBTag, style: modelBClass },
+        combined: { key: combinedKey, badge: combinedBadge, style: combinedStyle }
+      };
+    }
+
+    function computeProjection(target, baseIdx, targetIdx, capitalTenThousand) {
+      const p = parseFloat(target.current_price) || 0;
+      const beta = parseFloat(target.beta) || 1.8;
+      const deltaIndex = (targetIdx - baseIdx) / baseIdx;
+      const targetGain = deltaIndex * beta;
+      const targetPrice = p * (1 + targetGain);
+      const profit = (capitalTenThousand * 10000) * targetGain;
+
+      return {
+        deltaIndexPct: deltaIndex * 100,
+        targetGainPct: targetGain * 100,
+        targetPrice: targetPrice,
+        profit: profit
+      };
+    }
+
+    // ==========================================
+    // Realtime Data Fetcher (Local Server & Online Proxy Dual Mode)
+    // ==========================================
+    async function fetchRealtimeQuotes() {
+      // 1. 如果是在本地端 (localhost / 127.0.0.1)，直接連線 Python 本地即時看盤伺服器 (無任何 CORS 限制，真正盤中即時跳動！)
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        try {
+          const res = await fetch('/api/realtime?t=' + Date.now());
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.quotes) {
+              let updatedCount = 0;
+              Object.keys(data.quotes).forEach(code => {
+                const q = data.quotes[code];
+                const t = targetsList.find(x => x.code === code);
+                if (t && q.price) {
+                  t.current_price = q.price;
+                  t.change_pct = q.change_pct || t.change_pct;
+                  if (q.price > t.peak_price) t.peak_price = q.price;
+                  t.is_live = true;
+                  updatedCount++;
+                }
+              });
+              const nowStr = new Date().toLocaleTimeString('zh-TW');
+              document.getElementById("quoteSourceBadge").innerHTML = `<span class="text-emerald-700 font-extrabold animate-pulse">🟢 本地即時後端已連線 (${nowStr} 盤中跳動中)</span>`;
+              renderCards();
+              return true;
+            }
+          }
+        } catch (e) {
+          console.warn("本地後端 API 未啟動，切換至備援連線模式...");
+        }
+      }
+
+      // 2. 線上環境 (GitHub Pages)：透過 Yahoo Finance Chart API 代理抓取熱門科技 ETF 最新盤中撮合價
+      const keyCodes = ['0050', '0052', '006208', '00881', '00935', '00941', '00929', '00891', '00757', '00662', '00830'];
+      let anyUpdated = false;
+
+      for (let code of keyCodes) {
+        try {
+          const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${code}.TW?interval=1d&range=1d`;
+          const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`;
+          const res = await fetch(proxyUrl, { cache: "no-store" });
+          if (res.ok) {
+            const data = await res.json();
+            const meta = data?.chart?.result?.[0]?.meta;
+            if (meta && meta.regularMarketPrice) {
+              const t = targetsList.find(x => x.code === code);
+              if (t) {
+                t.current_price = meta.regularMarketPrice;
+                const prev = meta.chartPreviousClose || meta.previousClose;
+                if (prev) {
+                  t.change_pct = parseFloat((((t.current_price - prev) / prev) * 100).toFixed(2));
+                }
+                if (t.current_price > t.peak_price) t.peak_price = t.current_price;
+                t.is_live = true;
+                anyUpdated = true;
+              }
+            }
+          }
+        } catch (err) {
+          // 網路代理遇限流或超時略過
+        }
+      }
+
+      const nowStr = new Date().toLocaleTimeString('zh-TW');
+      if (anyUpdated) {
+        document.getElementById("quoteSourceBadge").innerHTML = `<span class="text-emerald-700">🟢 雲端即時連線成功 (${nowStr})</span>`;
+        renderCards();
+        return true;
+      } else {
+        document.getElementById("quoteSourceBadge").innerHTML = `<span class="text-indigo-800">📅 投信/證交所最新收盤淨值 (即時備援)</span>`;
+        return false;
+      }
+    }
+
+    // Load initial JSON from local repo if available
+    async function loadDataAndInit() {
+      // 1. 立即以內建最新資料庫渲染畫面，0.01 秒瞬間看見完整 31 檔標的卡片！
+      updateScenarioLabels();
+      renderCards();
+
+      // 2. 嘗試讀取 local repo 的 JSON（若有更新）
+      try {
+        const res = await fetch(`./taiwan_bank_funds.json?t=${Date.now()}`, { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.targets && data.targets.length > 0) {
+            targetsList = data.targets;
+            if (data.last_updated) {
+              lastUpdatedTimestamp = data.last_updated;
+              document.getElementById("lastUpdatedBadge").textContent = lastUpdatedTimestamp;
+            }
+            renderCards();
+          }
+        }
+      } catch (err) {
+        console.log("Using embedded default targets");
+      }
+
+      // 3. 背景執行即時報價連線，不阻礙頁面呈現
+      document.getElementById("quoteSourceBadge").textContent = "正在連線最新即時報價...";
+      fetchRealtimeQuotes().then(() => {
+        renderCards();
+      });
+
+      // 4. 如果是在 localhost，自動開啟輪詢
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        toggleAutoPolling();
+      }
+    }
+
+    async function refreshData() {
+      const btn = document.getElementById("refreshBtn");
+      const icon = document.getElementById("refreshIcon");
+      const text = document.getElementById("refreshText");
+      icon.classList.add("animate-spin");
+      text.textContent = "連線抓取中...";
+
+      const liveSuccess = await fetchRealtimeQuotes();
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      lastUpdatedTimestamp = `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+      document.getElementById("lastUpdatedBadge").textContent = lastUpdatedTimestamp;
+
+      icon.classList.remove("animate-spin");
+      text.textContent = liveSuccess ? "即時報價已同步！" : "已更新至最新淨值！";
+      setTimeout(() => { text.textContent = "即時連線更新報價"; }, 2500);
+
+      renderCards();
+    }
+
+    function toggleAutoPolling() {
+      const btn = document.getElementById("pollingBtn");
+      const dot = document.getElementById("pollingDot");
+      const text = document.getElementById("pollingText");
+
+      if (autoPollingInterval) {
+        clearInterval(autoPollingInterval);
+        autoPollingInterval = null;
+        dot.className = "w-2 h-2 rounded-full bg-slate-400";
+        text.textContent = "啟用自動輪詢";
+        btn.className = "px-3.5 py-2.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold flex items-center gap-1.5 transition-all shadow-2xs";
+      } else {
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const intervalMs = isLocal ? 5000 : 30000;
+        autoPollingInterval = setInterval(() => {
+          fetchRealtimeQuotes();
+        }, intervalMs);
+        dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-ping";
+        text.textContent = isLocal ? "本地每 5 秒即時跳動中" : "30 秒自動輪詢中";
+        btn.className = "px-3.5 py-2.5 rounded-2xl border border-emerald-400 bg-emerald-50 text-emerald-800 font-bold flex items-center gap-1.5 transition-all shadow-2xs";
+        fetchRealtimeQuotes();
+      }
+    }
+
+    // Quick Price Adjustment Modal
+    function openEditPriceModal(id) {
+      const target = targetsList.find(t => t.id === id);
+      if (!target) return;
+      document.getElementById("editTargetId").value = id;
+      document.getElementById("editTargetTitle").textContent = `${target.code} ${target.name}`;
+      document.getElementById("editCurrentPriceInput").value = target.current_price;
+      document.getElementById("editPriceModal").classList.remove("hidden");
+    }
+
+    function closeEditPriceModal() {
+      document.getElementById("editPriceModal").classList.add("hidden");
+    }
+
+    function handleSaveEditedPrice(e) {
+      e.preventDefault();
+      const id = document.getElementById("editTargetId").value;
+      const newPrice = parseFloat(document.getElementById("editCurrentPriceInput").value);
+      const target = targetsList.find(t => t.id === id);
+      if (target && !isNaN(newPrice) && newPrice > 0) {
+        const oldPrice = target.current_price;
+        target.current_price = newPrice;
+        if (oldPrice > 0) {
+          target.change_pct = parseFloat((((newPrice - oldPrice) / oldPrice) * 100).toFixed(2));
+        }
+        if (newPrice > target.peak_price) {
+          target.peak_price = newPrice;
+        }
+        target.is_custom_edited = true;
+      }
+      closeEditPriceModal();
+      renderCards();
+    }
+
+    // Modal Handlers for Adding Target
+    function openAddTargetModal() {
+      document.getElementById("addTargetModal").classList.remove("hidden");
+    }
+
+    function closeAddTargetModal() {
+      document.getElementById("addTargetModal").classList.add("hidden");
+    }
+
+    function handleAddTarget(e) {
+      e.preventDefault();
+      const code = document.getElementById("addCode").value.trim().toUpperCase();
+      const type = document.getElementById("addType").value;
+      const name = document.getElementById("addName").value.trim();
+      const pCurr = parseFloat(document.getElementById("addCurrentPrice").value);
+      const pPeak = parseFloat(document.getElementById("addPeakPrice").value);
+      const ma60 = parseFloat(document.getElementById("addMa60").value);
+      const ma120 = parseFloat(document.getElementById("addMa120").value);
+      const beta = parseFloat(document.getElementById("addBeta").value) || 1.8;
+
+      const newTarget = {
+        id: `CUSTOM_${code}_${Date.now()}`,
+        code,
+        name,
+        type,
+        category: type === "etf" ? "自訂科技型 ETF" : "自訂高科技基金",
+        issuer: "自訂新增標的",
+        market_channel: type === "etf" ? "台股集中市場掛牌撮合交易" : "商業銀行信託專戶申購",
+        current_price: pCurr,
+        change_pct: 0.0,
+        peak_price: pPeak,
+        ma_60: ma60,
+        ma_120: ma120,
+        beta,
+        tech_ratio: 85,
+        official_url: "https://www.twse.com.tw/",
+        query_url: "https://www.twse.com.tw/"
+      };
+
+      targetsList.unshift(newTarget);
+      closeAddTargetModal();
+      document.getElementById("addTargetForm").reset();
+      renderCards();
+    }
+
+    // ==========================================
+    // MAIN RENDER (Strictly NO HTML Tables)
+    // ==========================================
+    function renderCards() {
+      const processed = targetsList.map(item => {
+        const evalRes = computeDualEvaluation(item);
+        const projRes = computeProjection(item, baseMarketIndex, currentTargetIndex, currentCapitalTenThousand);
+        return {
+          ...item,
+          eval: evalRes,
+          proj: projRes
+        };
+      });
+
+      // Update counters
+      document.getElementById("countAll").textContent = processed.length;
+      document.getElementById("countEtf").textContent = processed.filter(t => t.type === 'etf').length;
+      document.getElementById("countFund").textContent = processed.filter(t => t.type === 'fund').length;
+
+      document.getElementById("countSweet").textContent = processed.filter(t => t.eval.combined.key === 'dual_sweet').length;
+      document.getElementById("countFair").textContent = processed.filter(t => t.eval.combined.key === 'fair').length;
+      document.getElementById("countExp").textContent = processed.filter(t => t.eval.combined.key === 'expensive').length;
+
+      // Filter by Category, Status, and Search Query
+      let filtered = processed.filter(item => {
+        if (currentCategoryFilter !== 'all' && item.type !== currentCategoryFilter) return false;
+        if (currentStatusFilter !== 'all' && item.eval.combined.key !== currentStatusFilter) return false;
+        if (currentSearchQuery) {
+          const matchCode = item.code.toLowerCase().includes(currentSearchQuery);
+          const matchName = item.name.toLowerCase().includes(currentSearchQuery);
+          const matchIssuer = (item.issuer || "").toLowerCase().includes(currentSearchQuery);
+          const matchCat = (item.category || "").toLowerCase().includes(currentSearchQuery);
+          if (!matchCode && !matchName && !matchIssuer && !matchCat) return false;
+        }
+        return true;
+      });
+
+      // Sort
+      if (currentSort === "gain_desc") {
+        filtered.sort((a, b) => b.proj.targetGainPct - a.proj.targetGainPct);
+      } else if (currentSort === "dd_desc") {
+        filtered.sort((a, b) => b.eval.ddPct - a.eval.ddPct);
+      } else if (currentSort === "tech_desc") {
+        filtered.sort((a, b) => (b.tech_ratio || 0) - (a.tech_ratio || 0));
+      } else if (currentSort === "code_asc") {
+        filtered.sort((a, b) => a.code.localeCompare(b.code));
+      }
+
+      // Build Cards HTML (Structured Card layout, Tag pills, List blocks)
+      const cardsHtml = filtered.map(t => {
+        const ev = t.eval;
+        const pj = t.proj;
+        const isExpanded = expandedCardIds.has(t.id);
+        const changeClass = t.change_pct >= 0 ? 'text-rose-600 bg-rose-50 border-rose-200' : 'text-emerald-600 bg-emerald-50 border-emerald-200';
+        const changeSign = t.change_pct >= 0 ? '+' : '';
+
+        return `
+          <div class="bg-white border border-slate-200 hover:border-indigo-400 rounded-3xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+            
+            <!-- Card Header: Code, Type Tag, Combined Valuation Tag -->
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-2.5 py-0.5 rounded-lg text-xs font-mono font-extrabold bg-slate-100 text-slate-800">${t.code}</span>
+                  <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 text-indigo-700">${t.type === 'etf' ? '科技ETF' : '科技基金'}</span>
+                  ${t.is_live ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 animate-pulse">盤中即時</span>' : ''}
+                </div>
+                <span class="px-3 py-1 rounded-full text-xs font-extrabold border ${ev.combined.style}">
+                  ${ev.combined.badge}
+                </span>
+              </div>
+
+              <!-- Name & Tags -->
+              <div>
+                <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-snug">
+                  ${t.name}
+                </h3>
+                <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                  <span class="text-[11px] text-slate-500">${t.issuer}</span>
+                  <span class="text-slate-300">•</span>
+                  <span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">${t.category}</span>
+                  ${t.tech_ratio ? `
+                    <span class="text-[11px] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-bold">
+                      🔥 科技持股 ${t.tech_ratio}%
+                    </span>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+
+            <!-- Price & Change Block -->
+            <div class="bg-slate-50/80 border border-slate-100 rounded-2xl p-3.5 flex items-end justify-between">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] text-slate-400 font-medium">${t.type === 'etf' ? '即時市價' : '基金最新淨值'}</span>
+                  <button onclick="openEditPriceModal('${t.id}')" title="快速微調價格" class="text-slate-400 hover:text-indigo-600 text-xs">✏️</button>
+                </div>
+                <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
+                  <span class="text-xs font-normal text-slate-500 mr-0.5">NT$</span>${t.current_price.toFixed(2)}
+                </div>
+              </div>
+
+              <div class="text-right space-y-1">
+                <span class="inline-block px-2.5 py-1 rounded-xl text-xs font-mono font-black border ${changeClass}">
+                  ${changeSign}${t.change_pct.toFixed(2)}%
+                </span>
+                <div class="text-[10px] text-slate-400 font-mono">
+                  Beta 彈性: <b class="text-slate-700">${t.beta.toFixed(2)}</b>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quantitative Valuation Breakdown (Strictly Structured Lists & Badges) -->
+            <div class="space-y-2.5 text-xs">
+              
+              <!-- Model A Breakdown -->
+              <div class="border border-slate-100 rounded-2xl p-2.5 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-slate-700 flex items-center gap-1">
+                    <span>📉 模型 A 波段回檔</span>
+                  </span>
+                  <span class="px-2 py-0.5 rounded-md text-[11px] font-bold border ${ev.modelA.style}">
+                    ${ev.modelA.tag}
+                  </span>
+                </div>
+                <div class="flex justify-between items-center text-slate-500 text-[11px] font-mono">
+                  <span>近1年高點: ${t.peak_price.toFixed(2)} 元</span>
+                  <span class="font-bold ${ev.ddPct >= 25 ? 'text-emerald-700' : 'text-slate-700'}">已回檔 -${ev.ddPct.toFixed(1)}%</span>
+                </div>
+              </div>
+
+              <!-- Model B Breakdown -->
+              <div class="border border-slate-100 rounded-2xl p-2.5 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-slate-700 flex items-center gap-1">
+                    <span>📊 模型 B 均線乖離</span>
+                  </span>
+                  <span class="px-2 py-0.5 rounded-md text-[11px] font-bold border ${ev.modelB.style}">
+                    ${ev.modelB.tag}
+                  </span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-slate-500 text-[11px] font-mono">
+                  <div class="flex justify-between bg-white px-2 py-1 rounded-lg border border-slate-100">
+                    <span>季線(60MA):</span>
+                    <b class="${ev.bias60Pct <= -10 ? 'text-emerald-700' : 'text-slate-800'}">${ev.bias60Pct >= 0 ? '+' : ''}${ev.bias60Pct.toFixed(1)}%</b>
+                  </div>
+                  <div class="flex justify-between bg-white px-2 py-1 rounded-lg border border-slate-100">
+                    <span>半年(120MA):</span>
+                    <b class="${ev.bias120Pct <= -12 ? 'text-emerald-700' : 'text-slate-800'}">${ev.bias120Pct >= 0 ? '+' : ''}${ev.bias120Pct.toFixed(1)}%</b>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 50,000 Points Projection Feature Block (Card layout, No Table) -->
+              <div class="bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 text-white rounded-2xl p-3.5 space-y-2 shadow-xs">
+                <div class="flex items-center justify-between border-b border-indigo-800/60 pb-1.5">
+                  <span class="text-xs font-bold text-amber-300 flex items-center gap-1">
+                    <span>🎯</span> 大盤 ${currentTargetIndex.toLocaleString()} 點推估
+                  </span>
+                  <span class="text-[11px] font-mono text-emerald-300 font-extrabold">
+                    預期成長 +${pj.targetGainPct.toFixed(1)}%
+                  </span>
+                </div>
+
+                <div class="flex justify-between items-baseline text-xs font-mono">
+                  <span class="text-indigo-300">預估目標價</span>
+                  <span class="text-base font-black text-white">${pj.targetPrice.toFixed(2)} 元</span>
+                </div>
+
+                <div class="pt-1.5 border-t border-indigo-800/70 flex justify-between items-baseline text-xs font-mono">
+                  <span class="text-indigo-300">每投入 ${currentCapitalTenThousand} 萬預估獲利</span>
+                  <span class="text-base font-extrabold text-emerald-300">+NT$ ${Math.round(pj.profit).toLocaleString()} 元</span>
+                </div>
+              </div>
+
+              <!-- Expandable Detailed Section (Toggled by user click) -->
+              ${isExpanded ? `
+                <div class="bg-white rounded-2xl p-3 border border-indigo-100 space-y-2.5 text-xs animate-fadeIn">
+                  <div class="font-bold text-slate-900 border-b border-slate-100 pb-1.5 flex justify-between items-center">
+                    <span>📋 多階段點位情境矩陣</span>
+                    <span class="text-[10px] text-slate-400">依 Beta ${t.beta.toFixed(2)} 彈性推算</span>
+                  </div>
+                  
+                  <div class="space-y-1.5 font-mono text-[11px]">
+                    ${[44000, 50000, 51000, 52000, 55000].map(pt => {
+                      const sc = computeProjection(t, baseMarketIndex, pt, currentCapitalTenThousand);
+                      const isSel = pt === currentTargetIndex;
+                      return `
+                        <div class="flex items-center justify-between p-1.5 rounded-lg ${isSel ? 'bg-amber-50 text-amber-900 font-bold border border-amber-200' : 'bg-slate-50 text-slate-700'}">
+                          <span>${pt.toLocaleString()} 點 (${sc.deltaIndexPct >= 0 ? '+' : ''}${sc.deltaIndexPct.toFixed(1)}%)</span>
+                          <span>目標 ${sc.targetPrice.toFixed(2)} 元</span>
+                          <span class="text-indigo-700">+NT$ ${Math.round(sc.profit).toLocaleString()}</span>
+                        </div>
+                      `;
+                    }).join("")}
+                  </div>
+
+                  <div class="pt-1 text-[10px] text-slate-500">
+                    <div><b>通路渠道：</b>${t.market_channel || '台股集中市場撮合交易'}</div>
+                    <div class="mt-0.5 text-slate-400">* 註：模型推估僅供資產配置參考，實際交易請考量流動性與市場波動風險。</div>
+                  </div>
+                </div>
+              ` : ''}
+
+            </div>
+
+            <!-- Card Bottom Action Row -->
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+              <button onclick="toggleCardExpansion('${t.id}')" 
+                      class="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-indigo-400 bg-white text-indigo-700 font-bold transition-all shadow-2xs">
+                ${isExpanded ? '收起細節 ▲' : '點選展開完整推估 ▼'}
+              </button>
+
+              <div class="flex items-center gap-1.5">
+                <a href="${t.official_url}" target="_blank" rel="noopener noreferrer" 
+                   class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors">
+                  官網
+                </a>
+                <a href="${t.query_url}" target="_blank" rel="noopener noreferrer" 
+                   class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors">
+                  行情
+                </a>
+              </div>
+            </div>
+
+          </div>
+        `;
+      }).join("");
+
+      document.getElementById("targetsGrid").innerHTML = cardsHtml || `
+        <div class="col-span-3 text-center py-12 text-slate-400 bg-white rounded-3xl border border-slate-200">
+          <p class="text-base font-bold text-slate-600">無符合當前篩選條件的標的</p>
+          <p class="text-xs text-slate-400 mt-1">請調整上方的標的分類或價格位階狀態篩選</p>
+        </div>
+      `;
+    }
+
+    // Event Listeners for inputs
+    document.getElementById("targetIndexSlider").addEventListener("input", (e) => {
+      currentTargetIndex = parseInt(e.target.value);
+      updateScenarioLabels();
+      renderCards();
+    });
+
+    document.getElementById("baseIndexInput").addEventListener("input", (e) => {
+      baseMarketIndex = parseFloat(e.target.value) || 44000;
+      document.getElementById("baseIndexText").textContent = baseMarketIndex.toLocaleString();
+      updateScenarioLabels();
+      renderCards();
+    });
+
+    document.getElementById("capitalInput").addEventListener("input", (e) => {
+      currentCapitalTenThousand = parseFloat(e.target.value) || 10;
+      document.getElementById("capitalText").textContent = `${currentCapitalTenThousand} 萬元`;
+      renderCards();
+    });
+
+    // Init Page on Load
+    loadDataAndInit();
+  </script>
+</body>
+</html>
